@@ -1,0 +1,123 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.container {
+    width: 80%;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+#header {
+    background: linear-gradient(#6a11cb, #2575fc, #98beff, #f4f4f4);
+    display: flex;
+    justify-content: center;
+}
+
+#header h1 {
+    text-align: center;
+    font-size: 75px;
+    font-weight: bold;
+    margin: 40px 0;
+    padding: 20px 0;
+}
+
+#header h2 {
+    text-align: center;
+    font-size: 25px;
+    font-weight: bold;
+    color: #0010a0;
+}
+
+#header p {
+    text-align: center;
+    font-size: 10px;
+    color: #0010a0;
+}
+
+h1 {
+    color: #0010a0;
+}
+
+.gallery-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.gallery-item {
+    width: 23%;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.gallery-item img {
+    width: 100%;
+    /* Makes the image take up the width of its container */
+    max-width: 200px;
+    /* Restrains the maximum width of each image */
+    height: auto;
+    /* Maintains aspect ratio */
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.gallery-item p {
+    margin-top: 4px;
+    font-size: 10px;
+    color: rgb(0, 0, 0);
+}
+
+.gallery-item.large {
+    width: 50%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.before-after {
+    width: 48%;
+    text-align: center;
+}
+
+.before-after img {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+}
+
+.before-after p {
+    margin-top: 8px;
+    font-size: 16px;
+    color: #555;
+}
+
+@media (max-width: 1200px) {
+    .gallery-item {
+        width: 45%;
+    }
+
+    .gallery-item.large {
+        width: 100%;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .gallery-item-before-after {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .gallery-item {
+        width: 100%;
+    }
+
+    .gallery-item.large {
+        width: 100%;
+    }
+}
