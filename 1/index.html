@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Project 1</title>
     <style>
@@ -8,10 +9,253 @@
             margin: 20px;
         }
     </style>
+    <meta charset="UTF-8">
+    <title id="cs180-title">CS 180 - Project 1</title>
+    <link rel="stylesheet" href="style.css">
 </head>
+
+
 <body>
-    <h1>Project 1</h1>
-    <p>Project 1 for CS180/280A.</p>
-    <a href="../index.html">Back to main page</a>
+    <section id="header">
+        <div class="container">
+            <h1>CS 180 Project 1</h1>
+            <h2>Images of the Russian Empire:
+                Colorizing the Prokudin-Gorskii photo collection</h2>
+            <p> by Ziran Zhou</p>
+        </div>
+    </section>
+
+    <section id="overview">
+        <div class="container">
+            <h1>Overview</h1>
+            <p>In this project, I followed the instructions and the background introduction
+                of the spec and explored how to use the recorded three exposures of the
+                photos, and split them into their own channels of Red, Green, and Blue,
+                which was not able to be physically recorded together at the time. But with
+                modern day imaging algorithms and approaches, I was able to use the three channels
+                to recreate the photos.</p>
+        </div>
+    </section>
+
+
+    <section id="implementation">
+        <div class="container">
+            <h1>Implementation</h1>
+            <div>
+                <h3>Splitting the image into 3 different Channels</h3>
+                <p>
+                    I read in the single image file that contains the three color channels stacked vertically, in the
+                    order of Blue, Green, Red (BGR), then with the starter code provided, I was abel to split the image
+                    into three equal parts, of three color channels, achieved by calculating the height of the image and
+                    dividing it to 3 equal parts, and assigning each part to the respective color channel.
+                </p>
+            </div>
+            <div>
+                <h3>Aligning channels using Simple Translation Model</h3>
+                <p>
+                    After splitting the channels, I align the Green (G) and Red (R) channels to the Blue (B) channel as
+                    base, and the alignment assumes that there is a simple x,y translation model, where the channels are
+                    shifted horizontally and vertically to match each other so that the pixels of the original photo
+                    match each other in terms of location, with the assumption that the translation is sufficient to
+                    align properlly a visually correct RGB image.
+                </p>
+            </div>
+            <div>
+                <h3>Exhaustive Search for Alignment</h3>
+                <p>
+                    I used an exhaustive approach to align the channels to create the visually correct RGB image,
+                    including shifting the image across a defined window of pixels of the range <code>[-15, 15]</code>
+                    pixels in both the directions of x and y axis, and I calculated the Euclidean Distance (SSD when
+                    squared) following the instructions, between the base Blue channel and the shifted channels of
+                    either Red or Green to determine the best alignment.
+                </p>
+            </div>
+            <div>
+                <h3>Edge Detection and Border Artifacts Handling</h3>
+                <p>
+                    There were some issues arising in the implementation, mainly for the <code>emir.tif</code>, mainly
+                    because that image has very varrying brightness values, so using only pixel values is not
+                    sufficient, so just in case of other inputs with similar traits, aligning based only on the pixel
+                    values does not always work properly because of the variations in teh brightness and color of the
+                    pixels and to fix the problem. See Bells & Whistles section for more.
+
+
+                    I used edge detection via teh Prewitt filter to
+                    emphasize the structural elements of the
+                    image, mainly the edges, which are consistent throughout the different color channels. The borders
+                    of the image contain a lot of noise, so this presents anothe issue, so to properly align these
+                    edges, I also ignored the border artifacts by a certain percentage (around 15%) so I have proper
+                    alignment performance with less noise or fringe effects at the borders.
+                </p>
+            </div>
+            <div>
+                <h3>Pyramid Technique Optimization for Large Image</h3>
+                <p>
+                    Following the spec of the project, I utilized the Pyramid technique to optimize for the large
+                    images, since the exhaustive searches become computationally expensive, as we start with a coarse
+                    version of the image, which is downscaled using the package methods, and alignment is then performed
+                    at each level of the pyramid so the displacement or shifting is refined as the resolution increases.
+                    The downscaling is performed recursively, as the image progressively being downscaled, the alignment
+                    is performed at each subordinate level, and the displacement at lower resolution is multiplied by 2
+                    so we can apply to the higher resolution for refinement. Simply put, the offset found at the
+                    recursive lower level is kept and used for the next pyramid search level.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section id="bellsnwhistles">
+        <div class="container">
+            <h1>Bells & Whistles</h1>
+            <div>
+                <h3>Dynamic and Fixed Border (Edge) Detection and Removal</h3>
+                <p>
+                    After splitting the image into the 3 color channels (B, G, R), but i use edge detection on each
+                    channel using sobel filter. I also considered prewitt filter but sobel is said to have more response
+                    and sensitivity to fine-grained details and and place a higher weight on central pixels of the
+                    gradient calculation, and more useful in high-contrast areas than prewitt. This filtering asists in
+                    identifying significant features of the image, and the maximum edge values across the color channels
+                    are used to make a unified masking which is used to determin the region that I want to keep based on
+                    the edges itensities and a threshold is used to decide that 95% will be kept since they are of
+                    moment, and with this mask I extract the bounding box defined by outermost significant edges and it
+                    determines the cropping boundaries, and I can eventually dynamically adjusting them based on the
+                    image's content rather than the predefined margins.
+                </p>
+                <p>
+                    However, the dynamic fringe detection and removal is not enough. After that, the shifting on the R
+                    red channel is slightly better, from <code>[132 -629]</code> to <code>[128 -388]</code>, but still
+                    slightly off, so I had to reapply a prewitt filter for the shifted channel before passing into the
+                    pyramid function, which successfully aligned the image <code>emir.tif</code>.
+                </p>
+                <p>
+                    [See the images output
+                    below titled <code>emir_output_unmodified.jpg</code>, <code>emir_output_only_dynamic.jpg</code>, and
+                    <code>emir_output_dynamic_prewitt.jpg</code>]
+                </p>
+            </div>
+        </div>
+    </section>
+
+
+
+
+
+    <section id="output">
+        <div class="container">
+            <h1>Output</h1>
+            <div class="gallery-row">
+                <div class="gallery-item">
+                    <img src="output/monastery_output.jpg" alt="Image 1">
+                    <p>monastery_output.jpg</p>
+                    <p class="offset">Green Channel Shift: [-3, 2] <br> Red Channel Shift: [3, 2]</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="output/church_output.jpg" alt="Image 2">
+                    <p>church_output.jpg</p>
+                    <p class="offset">Green Channel Shift: [25, 4] <br> Red Channel Shift: [58, -4]</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="output/three_generations_output.jpg" alt="Image 3">
+                    <p>three_generations_output.jpg</p>
+                    <p class="offset">Green Channel Shift: [54, 12] <br> Red Channel Shift: [111, 9]</p>
+                </div>
+                <div class=" gallery-item">
+                    <img src="output/melons_output.jpg" alt="Image 4">
+                    <p>melons_output.jpg</p>
+                    <p class="offset">Green Channel Shift: [80, 10] <br> Red Channel Shift: [177, 13]</p>
+                </div>
+            </div>
+
+            <div class="gallery-row">
+                <div class="gallery-item">
+                    <img src="output/onion_church_output.jpg" alt="Image 5">
+                    <p>onion_church_output.jpg</p>
+                    <p class="offset">Green Channel Shift: [52, 25] <br> Red Channel Shift: [107, 36]</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="output/train_output.jpg" alt="Image 6">
+                    <p>train_output.jpg</p>
+                    <p class="offset">Green Channel Shift: [42, 2] <br> Red Channel Shift: [85, 29]</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="output/tobolsk_output.jpg" alt="Image 7">
+                    <p>tobolsk_output.jpg</p>
+                    <p class="offset">Green Channel Shift: [3, 3] <br> Red Channel Shift: [6, 3]</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="output/icon_output.jpg" alt="Image 8">
+                    <p>icon_output.jpg</p>
+                    <p class="offset">Green Channel Shift: [42, 17] <br> Red Channel Shift: [90, 23]</p>
+                </div>
+            </div>
+
+            <div class="gallery-row">
+                <div class="gallery-item">
+                    <img src="output/cathedral_output.jpg" alt="Image 9">
+                    <p>cathedral_output.jpg</p>
+                    <p class="offset">Green Channel Shift: [5, 2] <br> Red Channel Shift: [12, 3]</p>
+                </div>
+                <div class=" gallery-item">
+                    <img src="output/self_portrait_output.jpg" alt="Image 10">
+                    <p>self_portrait_output.jpg</p>
+                    <p class="offset">Green Channel Shift: [78, 29] <br> Red Channel Shift: [176, 37]</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="output/harvesters_output.jpg" alt="Image 11">
+                    <p>harvesters_output.jpg</p>
+                    <p class="offset">Green Channel Shift: [60, 17] <br> Red Channel Shift: [124, 14]</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="output/sculpture_output.jpg" alt="Image 12">
+                    <p>sculpture_output.jpg</p>
+                    <p class="offset">Green Channel Shift: [33, -11] <br> Red Channel Shift: [140, -26]</p>
+                </div>
+            </div>
+
+            <div class="gallery-row">
+                <div class="gallery-item">
+                    <img src="output/lady_output.jpg" alt="Image 13">
+                    <p>lady_output.jpg</p>
+                    <p class="offset">Green Channel Shift: [56, 9] <br> Red Channel Shift: [120, 13]</p>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-item-before-after">
+                        <img src="output/emir_output_unmodified.jpg" alt="Image 14.1">
+                        <p>emir_output_unmodified.jpg - Before applying Any Bells & Whistles techniques</p>
+                        <p class="offset">Green Channel Shift: [49 24] <br>Red Channel Shift: [132 -629]</p>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-item-before-after">
+                        <img src="output/emir_output_only_dynamic.jpg" alt="Image 14.2">
+                        <p>emir_output_only_dynamic.jpg - After applying Bells & Whistles Dynamic Edge Detection &
+                            Removal technique</p>
+                        <p class="offset">Green Channel Shift: [49 24] <br>Red Channel Shift: [128 -388]</p>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-item-before-after">
+                        <img src="output/emir_output_dynamic_prewitt.jpg" alt="Image 14.3">
+                        <p>emir_output_dynamic_prewitt.jpg - After applying Bells & Whistles Dyamic Edge Detection &
+                            Removal and Prewitt Filter techniques</p>
+                        <p class="offset">Green Channel Shift: [49 24] <br> Red Channel Shift: [107 40]</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="conclusion">
+        <div class="container">
+            <h2>Summation</h2>
+            <p>With the help of starter code, and the methods like Euclidean Distance and Pyramid method, the images are
+                able to be restored to the best quality possible from black and white channel-only images, and the
+                techniques also substantially reduced computation time for high-resolution images. Also, the edge
+                detection further improve the alignment quality especially for images with high brightness differences.
+            </p>
+        </div>
+    </section>
+
 </body>
+
 </html>
