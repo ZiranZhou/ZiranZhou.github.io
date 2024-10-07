@@ -1,1 +1,355 @@
+<!DOCTYPE html>
+<html>
 
+<head>
+    <title>Project 3</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <title id="cs180-title">CS 180 - Project 3</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+
+<body>
+    <section id="header">
+        <div class="container">
+            <h1>CS 180 Project 3</h1>
+            <h2>Face Morphing and Modelling a Photo Collection</h2>
+            <p> by Ziran Zhou</p>
+        </div>
+    </section>
+
+    <section id="overview">
+        <div class="container">
+            <h1>Overview</h1>
+            <p>In this project, I followed the instructions and the background introduction
+                of the spec and explored how to use of triangulation and various other methods
+                to warp faces of people and blend together and caculate the average. </p>
+        </div>
+    </section>
+
+
+    <section id="implementation">
+        <div class="container">
+            <h1>Part 1: Defining Correspondences</h1>
+            <div>
+                <p>
+                    I start with the manual selection of corresponding (key)points on two images, and consistently
+                    labeling in the same order of these points across the images and once defined they are saved to
+                    avoid redundant work for future sessions and I also calculated the triangulation of these points to
+                    create a mesh for morphing, using Delaunay triangulation for preferred geometric efficiency,
+                    typically computed on an average shape from the input sets to minimize distortion duirng morphing.
+                    The pints are stored in JSON file for persistence and read back when needed.
+                </p>
+            </div>
+            <div class="gallery-row">
+                <div class="image">
+                    <img src="media/iracebeth.jpg" alt="Image 1.1">
+                    <p class="title">iracebeth.jpg</p>
+                </div>
+                <div class="image">
+                    <img src="media/heathjoker.jpg" alt="Image 1.2">
+                    <p class="title">heathjoker.jpg</p>
+                </div>
+                <div class="image">
+                    <img src="media/DLNs_iracebeth.jpg" alt="Image 1.3">
+                    <p class="title">DLNs_iracebeth.jpg</p>
+                </div>
+                <div class="image">
+                    <img src="media/DLNs_heathjoker.jpg" alt="Image 1.4">
+                    <p class="title">DLNs_heathjoker.jpg</p>
+                </div>
+            </div>
+
+            <div class="gallery-row">
+                <div class="image">
+                    <img src="media/george.jpg" alt="Image 1.5">
+                    <p class="title">george.jpg</p>
+                </div>
+                <div class="image">
+                    <img src="media/heath.jpg" alt="Image 1.6">
+                    <p class="title">heath.jpg</p>
+                </div>
+                <div class="image">
+                    <img src="media/DLNs_george.jpg" alt="Image 1.7">
+                    <p class="title">DLNs_george.jpg</p>
+                </div>
+                <div class="image">
+                    <img src="media/DLNs_heath.jpg" alt="Image 1.8">
+                    <p class="title">DLNs_heath.jpg</p>
+                </div>
+            </div>
+
+            <div class="gallery-row">
+                <div class="image">
+                    <img src="media/melania.png" alt="Image 1.9">
+                    <p class="title">melania.png</p>
+                </div>
+                <div class="image">
+                    <img src="media/michelle.png" alt="Image 1.10">
+                    <p class="title">michelle.png</p>
+                </div>
+                <div class="image">
+                    <img src="media/DLNs_melania.jpg" alt="Image 1.11">
+                    <p class="title">DLNs_melania.jpg</p>
+                </div>
+                <div class="image">
+                    <img src="media/DLNs_michelle.jpg" alt="Image 1.12">
+                    <p class="title">DLNs_michelle.jpg</p>
+                </div>
+            </div>
+
+            <div class="gallery-row">
+                <div class="image">
+                    <img src="media/dt_warp.jpg" alt="Image 1.13">
+                    <p class="title">dt_warp.jpg</p>
+                </div>
+                <div class="image">
+                    <img src="media/bj_warp.jpg" alt="Image 1.14">
+                    <p class="title">bj_warp.jpg</p>
+                </div>
+                <div class="image">
+                    <img src="media/DLNs_donald.png" alt="Image 1.15">
+                    <p class="title">DLNs_donald.png</p>
+                </div>
+                <div class="image">
+                    <img src="media/DLNs_borris.png" alt="Image 1.16">
+                    <p class="title">DLNs_borris.png</p>
+                </div>
+            </div>
+
+
+
+            <h1>Part 2: Computing the "Mid-way Face"</h1>
+            <div>
+                <p>
+                    In this part I wrote out the <code>computeAffine</code> function which uses affine transformation
+                    for each triangular section by the DLN triangulation. Then I calculated the average shape
+                    of the 2 faces from finding th emidpoint for each corresponding pair of keypoints from the 2 images,
+                    giving a new keypoints set representing an average-d face shape.
+                    Then I warp both faces to the average shape and after I have the two warped faces I then have their
+                    color values averaged at pixel level to ensure the resulting midway face matches also in texture and
+                    color, essentially creating a blend. I looped over each triangle to avoid looping over individual
+                    pixels and warping at a higher level by transforming whole triangular regions at once using
+                    precomputed affine matrices.
+                </p>
+            </div>
+            <div class="image">
+                <img src="media/heathjoker_iracebeth_midway.jpg" alt="Image 2.1">
+                <p class="title">heathjoker_iracebeth_midway.jpg</p>
+            </div>
+            <div class="image">
+                <img src="media/george_heath_midway.jpg" alt="Image 2.2">
+                <p class="title">george_heath_midway.jpg</p>
+            </div>
+            <div class="image">
+                <img src="media/melania_michelle_midway.jpg" alt="Image 2.3">
+                <p class="title">melania_michelle_midway.jpg</p>
+            </div>
+            <div class="image">
+                <img src="media/dt_bj_midway.jpg" alt="Image 2.4">
+                <p class="title">dt_bj_midway.jpg</p>
+            </div>
+
+
+
+
+            <h1>Part 3: Hybrid Images</h1>
+            <div>
+                <p>
+                    In this part, I morphed two images into one another using a sequence of transformations based on
+                    specified control points and traingulation. I computed a morphed image by blending two source images
+                    which are warped to a degree, and this is achieved through first warping to an intermediate shape
+                    determined by a linear combination of initial and target control points and then combied to a level
+                    by <code>warp_frac</code> parameter and then teh warped images are blended using a cross-dissolve
+                    technique regulated by the <code>dissolve_frac</code> parameter. I then combined all the morphed
+                    images to create a smooth transition from 1st to last in a output gif file to animate the change.
+                </p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/heathjoker_iracebeth_morph.gif" alt="Image 3.1">
+                        <p>heathjoker_iracebeth_morph.gif</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/george_heath_morph.gif" alt="Image 3.2">
+                        <p>george_heath_morph.gif</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/melania_michelle_morph.gif" alt="Image 3.3">
+                        <p>melania_michelle_morph.gif</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/dt_bj_morph.gif" alt="Image 3.4">
+                        <p>dt_bj_morph.gif</p>
+                    </div>
+                </div>
+                <p>
+                    Also following the requirement, I transformed my face to George Clooney's and back.
+                </p>
+                <div class="image">
+                    <img src="media/me_george_midway.jpg" alt="Image 3.5">
+                    <p>me_george_midway.jpg</p>
+                </div>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/me_george_morph.gif" alt="Image 3.6">
+                        <p>me_george_morph.gif</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/george_me_morph.gif" alt="Image 3.7">
+                        <p>george_me_morph.gif</p>
+                    </div>
+                </div>
+                <div class="image">
+                    <img src="media/combined_output_me_george.gif" alt="Image 3.8">
+                    <p>combined_output_me_george.gif</p>
+                </div>
+            </div>
+
+
+
+
+
+            <h1>Part 4: The "Mean face" of a population</h1>
+            <div>
+                <p>
+                    In this part I analyzed the facial keypoints across a teh FEI dataset of annotated faces, in order
+                    to compute and visualize the average facial structures and features, and to enable comparisons
+                    across various demographic groups (I chose the Male/Female subgroups for analysis). This involved
+                    choosing a suitable dataset and calculating the mean face shape for teh entire dataset or specific
+                    subgroups of it.
+                </p>
+                <p>
+                    I first loaded and preprocessed teh images and get their coresponding keypoints in order, and then I
+                    calculated the average face shape by averaging teh shape/keypoints distribution, then I warped each
+                    individual face in the dataset to this average shape. I then layer them together and average the
+                    color in the eventual face to get the average face.
+                </p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/avg_face_all_regular.jpg" alt="Image 4.1">
+                        <p>avg_face_all_regular.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/avg_face_all_expressive.jpg" alt="Image 4.2">
+                        <p>avg_face_all_expressive.jpg</p>
+                    </div>
+                </div>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/avg_face_male_regular.jpg" alt="Image 4.3">
+                        <p>avg_face_male_regular.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/avg_face_female_regular.jpg" alt="Image 4.4">
+                        <p>avg_face_female_regular.jpg</p>
+                    </div>
+                </div>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/avg_face_male_expressive.jpg" alt="Image 4.5">
+                        <p>avg_face_male_expressive.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/avg_face_female_expressive.jpg" alt="Image 4.6">
+                        <p>avg_face_female_expressive.jpg</p>
+                    </div>
+                </div>
+                <p>
+                    I then further transformed my own face to fit
+                    the average geometry and adapted the average face if the population and of male subgroup
+                    respectively to match my facial structures.
+                </p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/myface_warped_into_avg.jpg" alt="Image 4.7">
+                        <p>myface_warped_into_avg.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/avg_warped_into_myface.jpg" alt="Image 4.8">
+                        <p>avg_warped_into_myface.jpg</p>
+                    </div>
+                </div>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/myface_warped_into_avgmale.jpg" alt="Image 4.9">
+                        <p>myface_warped_into_avgmale.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/avgmale_warped_into_myface.jpg" alt="Image 4.10">
+                        <p>avgmale_warped_into_myface.jpg</p>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+            <h1>Part 5: Caricatures: Extrapolating from the mean</h1>
+            <div>
+                <p>
+                    I extrapolated from a calculated popylation mean from the previous part and used it to create
+                    exaggerated caricatures of my facial features, by modifying the degree of exaggeration through the
+                    use of scaling factors (alphas) that extend beyond the typical range of [0,1] and by choosing
+                    extreme alphas out-of-range, I was able to create some unusual and pronounced features or
+                    distortions on my face.
+                </p>
+                <div class="image">
+                    <img src="media/caricatures.jpg" alt="Image 5.1">
+                    <p>caricatures.jpg</p>
+                </div>
+            </div>
+
+
+
+
+            <h1>Part 6: Bells & Whistles</h1>
+            <h3>Music Video - Princes</h3>
+            <div>
+                <p>
+                    This part is the creation of the music video on the theme of Royalty (Princes), including Prince
+                    Harry of the UK, Prince Mohammed bin Salman of Saudi Arabia, Prince (Prince Rogers Nelson), Prince
+                    Jigme Namgyel Wangchuck of Bhutan, Prince Moulay Hassan of Morocco, and Prince Fumihito of Japan.
+                </p>
+                <p>
+                    The music is Purple Rain by Prince
+                </p>
+                <div class="video">
+                    <video width="920" height="800" controls>
+                        <source src="media/proj3_princes_mv.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <p>princes-mv.mp4</p>
+                </div>
+            </div>
+            <h3>Changing Gender/Race</h3>
+            <div>
+                <p>
+                    This part is the changing of gender/race from my face to another average. I chose the Average Female
+                    Face from the Netherlands due to their distinct blue eyes and pronounced facial bone structure, and
+                    after the blending, I certainly see how their features were blended onto my face.
+                </p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/myphoto.jpg" alt="Image 6.1">
+                        <p>myphoto.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/average-netherlands-female-face.jpg" alt="Image 6.2">
+                        <p>average-netherlands-female-face.jpg</p>
+                    </div>
+                </div>
+                <div class="image">
+                    <img src="media/bw-myface_avgdutchfemale_midway.jpg" alt="Image 6.3">
+                    <p>bw-myface_avgdutchfemale_midway.jpg</p>
+                </div>
+            </div>
+    </section>
+</body>
+
+</html>
