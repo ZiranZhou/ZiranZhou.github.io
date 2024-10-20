@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Project 4</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <title id="cs180-title">CS 180 - Project 4</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+
+<body>
+    <section id="header">
+        <div class="container">
+            <h1>CS 180 Project 4</h1>
+            <h2>[Auto]Stitching Photo Mosaics</h2>
+            <p> by Ziran Zhou</p>
+        </div>
+    </section>
+
+    <section id="overview">
+        <div class="container">
+            <h1>Overview</h1>
+            <p>In this project, I followed the instructions and the background introduction
+                of the spec and explored how to use homographies and perspective warping to obtain perspective-changed
+                image manipulation results. </p>
+        </div>
+    </section>
+
+
+    <section id="implementation">
+        <div class="container">
+            <h1>Part A: Image Warping & Mosaicing</h1>
+            <h2>Step 1 - Shooting & Digitizing Pictures</h2>
+            <div>
+                <p>
+                    I shoot several photos using the camera on a camera stand being rotated around, then I digitizie the
+                    photos and reduce the file size and image dimension for faster processing. The image set has 7
+                    photos in total, including im-1.jpg, etc. Each successive pair of images have around 40%-70% of
+                    similarity and I kept certain distinguishable features of the contents being taken so it is easier
+                    to select mathcing corner and edge points as correspondences. Admittedly, the photos have different
+                    lightings due to camera setting and environmental influences which may slightly influence the
+                    warping and stitching results in later parts.
+                </p>
+            </div>
+
+
+
+            <h2>Step 2 - Recovering Homographies</h2>
+            <div>
+                <p>
+                    In this part, I used the <code>sel_pts</code> and a series of other functions from Project 3 and I
+                    was able to select, store, and reload correspondence points between every two images in a pair.
+                    After selecting the correspondence points, for instance:
+                </p>
+                <div class="image">
+                    <img src="media/im1-im2-correspondence.jpg" alt="Image 1.2.1">
+                    <p>im1-im2-correspondence.jpg</p>
+                </div>
+                <div class="image">
+                    <img src="media/im2-im3-correspondence.jpg" alt="Image 1.2.2">
+                    <p>im2-im3-correspondence.jpg</p>
+                </div>
+                <div class="image">
+                    <img src="media/im3-im4-correspondence.jpg" alt="Image 1.2.3">
+                    <p>im3-im4-correspondence.jpg</p>
+                </div>
+                <div class="image">
+                    <img src="media/im4-im5-correspondence.jpg" alt="Image 1.2.4">
+                    <p>im4-im5-correspondence.jpg</p>
+                </div>
+                <p>
+                    I then work on image alignment via the point correspondences, and I developed the function
+                    <code>computeH(impts1, impts2)</code> for recovering homography matrix \(H\) between the two images
+                    we selected correspondences for, and it will create a 3x3 transformation matrix mapping
+                    correspondence
+                    points between two image.
+                    We can also visualize it with the mathematical relationship:
+                    \[p'=Hp\], where \(p'\) and \(p\) are (correspondence) points we selected for the two images, and
+                    each point is represented in homogeneous coordinates.
+                </p>
+                <p>
+                    We have the transformation as following:
+                    \[
+                    \begin{bmatrix}
+                    wx' \\
+                    wy' \\
+                    w
+                    \end{bmatrix}
+                    =
+                    \begin{bmatrix}
+                    a & b & c \\
+                    d & e & f \\
+                    g & h & 1
+                    \end{bmatrix}
+                    \begin{bmatrix}
+                    x \\
+                    y \\
+                    1
+                    \end{bmatrix}
+                    \]
+                </p>
+                <p>
+                    Then for each correspondence pair, we record points of coordinates \((x_1, y_1)\), \((x_2, y_2)\)
+                    from
+                    <code>impts1</code> and <code>impts2</code> and we can expand the matrix multiplication write th
+                    esystem as \(Ah=0\) where \(h\) is flaten \(h\) with the following 1st and 2nd rows:
+                    \[
+                    \begin{bmatrix}
+                    x_1 & y_1 & 1 & 0 & 0 & 0 & -x_1x_2 & -y_1x_2 & -x_2 \\
+                    0 & 0 & 0 & x_1 & y_1 & 1 & -x_1y_2 & -y_1y_2 & -y_2
+                    \end{bmatrix}
+                    \begin{bmatrix}
+                    a & b & c & d & e & f & g & h & 1
+                    \end{bmatrix}^\top
+                    =
+                    \begin{bmatrix}
+                    x' \\
+                    y'
+                    \end{bmatrix}
+                    \]
+                    And we solve this matrix multiplication to get the homography-transformed coordinates to now how
+                    each point in the image will be rearranged to create a chaneg in perspective of the image.
+                </p>
+                <p>
+                    We then solve the homography by Singular Value Decomposition (SVD) where matrix \(A\) is decomposed
+                    and the homograhy matrix \(H\) is then derived from the eigenvectors to the smallest singular value
+                    of \(A\) which effectively minimizes error and obtain the desired result.
+                </p>
+            </div>
+
+
+
+
+            <h2>Step 3 - Warp Images</h2>
+            <div>
+                <p>
+                    In this part, I morphed two images into one another using a sequence of transformations based on
+                    specified control points and traingulation.
+                </p>
+                <p>I utilized th ehomography matrix H to transform the
+                    coordinates of source image to target image's perspectvive and in the appropriate direction, i.e.
+                    warping image 1 to image 4 then H is utilized, warping image 5 to image 4 then H's inverse instead.
+                </p>
+                <p>I also avoided loops for actual warping computation by using <code>np.meshgrid</code> and other
+                    vectorized operations, and I also predicted the bounding box by transforming coordinates of original
+                    images and calculate the extends of the resulting image.
+                </p>
+                <p>Note that the resulting image is not placed
+                    in that extended background, but the information needed for blending is returned and will be handled
+                    and associated with the extended bounding box in the <code>mosaic</code> function instead.
+                </p>
+                <p>I avoided
+                    aliasing by using <code>scipy.interpolate.griddata</code> for resampling.
+                </p>
+                <p>
+                    Note that I excluded the 4th warped image from the display since it is chosen as the center so it is
+                    not warped with a homography matrix but with an identity matrix, i.e., that it is not warped to any
+                    different perspective.
+                </p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/im-1.jpg" alt="Image 1.3.1.1.0">
+                        <p>im-1.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im1-warped-to-im4.jpg" alt="Image 1.3.1.1">
+                        <p>im1-warped-to-im4.jpg</p>
+                    </div>
+                </div>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/im-2.jpg" alt="Image 1.3.1.2.0">
+                        <p>im-2.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im2-warped-to-im4.jpg" alt="Image 1.3.1.2">
+                        <p>im2-warped-to-im4.jpg</p>
+                    </div>
+                </div>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/im-3.jpg" alt="Image 1.3.1.3.0">
+                        <p>im-3.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im3-warped-to-im4.jpg" alt="Image 1.3.1.3">
+                        <p>im3-warped-to-im4.jpg</p>
+                    </div>
+                </div>
+                <div class="image">
+                    <img src="media/im-4.jpg" alt="Image 1.3.1.4">
+                    <p>im-4.jpg</p>
+                </div>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/im-5.jpg" alt="Image 1.3.1.5.0">
+                        <p>im-5.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im5-warped-to-im4.jpg" alt="Image 1.3.1.4">
+                        <p>im5-warped-to-im4.jpg</p>
+                    </div>
+                </div>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/im-6.jpg" alt="Image 1.3.1.6.0">
+                        <p>im-6.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im6-warped-to-im4.jpg" alt="Image 1.3.1.5">
+                        <p>im6-warped-to-im4.jpg</p>
+                    </div>
+                </div>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/im-7.jpg" alt="Image 1.3.1.7.0">
+                        <p>im-7.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im7-warped-to-im4.jpg" alt="Image 1.3.1.6">
+                        <p>im7-warped-to-im4.jpg</p>
+                    </div>
+                </div>
+                <p>
+                    I also used the homography functionality to achieve Rectification of images to desired
+                    perspective.
+                    The usage of homography in previous part was to find the projective transformation relationship
+                    between 2 images with correspondence points detailing the levels of perspective adjustment.
+                    However,
+                    in this rectifying task, I do not use homograhy between 2 images, but one image and another with
+                    correspondence points of a square or a rectangle, and choose ONLY 4 correspondence points on the
+                    image whose perspective I wish to rectify, and I ensured the order of points are the same no
+                    matter
+                    the order they are selected. Afterwards, the image is being warped using the
+                    <code>warpImage</code>
+                    function to the square or rectangle perspective, which works especally well for images with
+                    rectangular or square features before warping allowing for easy correspondence points selection.
+                </p>
+                <p></p>
+                I have the following example of a image of a street in London and the resulting rectified
+                image.
+                </p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/box.jpg" alt="Image 1.3.2.1">
+                        <p>box.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/box-rect.jpg" alt="Image 1.3.2.2">
+                        <p>box-rect.jpg</p>
+                    </div>
+                </div>
+                <p>
+                    And another example of a image of a street in London and the resulting rectified
+                    image.
+                </p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/londonst.jpg" alt="Image 1.3.2.3">
+                        <p>londonst.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/londonst-rect.jpg" alt="Image 1.3.2.4">
+                        <p>londonst-rect.jpg</p>
+                    </div>
+                </div>
+                <p>
+                    Here is another example of rectification of the buildings at Times Square in NYC.
+                </p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/nyc.jpg" alt="Image 1.3.2.5">
+                        <p>nyc.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/nyc-rect.jpg" alt="Image 1.3.2.6">
+                        <p>nyc-rect.jpg</p>
+                    </div>
+                </div>
+
+
+
+
+
+                <h1>Step 4: Image Blending / Mosaicing</h1>
+                <div>
+                    <p>
+                        In this part I used the <code>mosaic</code> function that takes in the results from
+                        <code>warpImage</code> (for a total of 7 with the 4th one being the center image not warped
+                        where each other image and their homographies are aligned to)
+                        where I am able to access the coordinates that matter for the creation of the
+                        dimension-extended
+                        eventual mosaic canvas.
+                    </p>
+                    <div class="image">
+                        <img src="media/ims-mosaic-overlaid.jpg" alt="Image 1.4.1">
+                        <p>ims-mosaic-overlaid(345-4-centered).jpg</p>
+                    </div>
+                    <p>
+                        We can see that the warped images connect almost perfectly, exhibiting the stitched result
+                        resembling of a panoramic image. There are some slight misalignment of the images and some
+                        differences in the pixel intensities which as described in the previous part of shooting the
+                        photos that they could be caused by the camera setting and the environmental influences, and
+                        the
+                        alignment may also be affected by the number of correspondence points selected and how each
+                        points are selected accurately enough which may not always be the case since it is manually
+                        selected.
+                    </p>
+                    <p>
+                        I could also use Laplacian blending to remove the sharp edges contrast in the eventual
+                        stitched
+                        image.
+                    </p>
+                    <p>
+                        I later also extended the number of photos stitched together from 3 to 7, still having the 4th
+                        photo being the center, and included the Laplacian Pyramid for blurring the artifacts between
+                        warped images overlaid together, though containing some blurriness, potentially due to
+                        variations in the correspondence points selection accuracy and how strongly teh perspective of
+                        the image like teh 1st and the 7th are being shifted by.
+                    </p>
+                    <div class="image">
+                        <img src="media/ims-mosaic-overlaid-all.jpg" alt="Image 1.4.2">
+                        <p>ims-mosaic-overlaid(1234567-4-centered).jpg</p>
+                    </div>
+                    <p>
+                        Another result is the pictures taken at Salt Lake City Intl. Airport for a total of 4 photos
+                        with the 2nd one being the center. The photos having some edges not being perfectly aligned
+                        which is expected since I was not able to stabilize the phone for shooting them with perspective
+                        rotated while keeping the center of projection identical throughout. But the main contents of
+                        the image are maintained and are perfectly stitched together with the homography transformation
+                        and the <code>warpImage</code> function implemented.
+                    </p>
+                    <div class="image">
+                        <img src="media/ims-mosaic-overlaid-slc.jpg" alt="Image 1.4.3">
+                        <p>ims-mosaic-overlaid-slc(1234-2-centered).jpg</p>
+                    </div>
+                    <p>
+                        Here are the individual photos in their original and warped forms:
+                    </p>
+                    <div class="gallery-row">
+                        <div class="image">
+                            <img src="media/slc-1.jpg" alt="Image 1.4.4.1">
+                            <p>slc-1.jpg</p>
+                        </div>
+                        <div class="image">
+                            <img src="media/slc-im1-warped-to-im2.jpg" alt="Image 1.4.4.2">
+                            <p>slc-im1-warped-to-im2.jpg</p>
+                        </div>
+                        <div class="image">
+                            <img src="media/im1-im2-slc-correspondence.jpg" alt="Image 1.4.4.2.1">
+                            <p>im1-im2-slc-correspondence.jpg</p>
+                        </div>
+                    </div>
+                    <div class="gallery-row">
+                        <div class="image">
+                            <img src="media/slc-2.jpg" alt="Image 1.4.4.3">
+                            <p>slc-2.jpg</p>
+                        </div>
+                    </div>
+                    <div class="gallery-row">
+                        <div class="image">
+                            <img src="media/slc-3.jpg" alt="Image 1.4.4.4">
+                            <p>slc-3.jpg</p>
+                        </div>
+                        <div class="image">
+                            <img src="media/slc-im3-warped-to-im2.jpg" alt="Image 1.4.4.5">
+                            <p>slc-im3-warped-to-im2.jpg</p>
+                        </div>
+                        <div class="image">
+                            <img src="media/im2-im3-slc-correspondence.jpg" alt="Image 1.4.4.5.1">
+                            <p>im2-im3-slc-correspondence.jpg</p>
+                        </div>
+                    </div>
+                    <div class="gallery-row">
+                        <div class="image">
+                            <img src="media/slc-4.jpg" alt="Image 1.4.4.6">
+                            <p>slc-4.jpg</p>
+                        </div>
+                        <div class="image">
+                            <img src="media/slc-im4-warped-to-im2.jpg" alt="Image 1.4.4.7">
+                            <p>slc-im4-warped-to-im2.jpg</p>
+                        </div>
+                        <div class="image">
+                            <img src="media/im3-im4-slc-correspondence.jpg" alt="Image 1.4.4.7.1">
+                            <p>im3-im4-slc-correspondence.jpg</p>
+                        </div>
+                    </div>
+                </div>
+    </section>
+</body>
+
+</html>
