@@ -69,14 +69,6 @@
                     <img src="media/im2-im3-correspondence.jpg" alt="Image 1.2.2">
                     <p>im2-im3-correspondence.jpg</p>
                 </div>
-                <div class="image">
-                    <img src="media/im3-im4-correspondence.jpg" alt="Image 1.2.3">
-                    <p>im3-im4-correspondence.jpg</p>
-                </div>
-                <div class="image">
-                    <img src="media/im4-im5-correspondence.jpg" alt="Image 1.2.4">
-                    <p>im4-im5-correspondence.jpg</p>
-                </div>
                 <p>
                     I then work on image alignment via the point correspondences, and I developed the function
                     <code>computeH(impts1, impts2)</code> for recovering homography matrix \(H\) between the two images
@@ -172,62 +164,22 @@
                         <p>im-1.jpg</p>
                     </div>
                     <div class="image">
-                        <img src="media/im1-warped-to-im4.jpg" alt="Image 1.3.1.1">
-                        <p>im1-warped-to-im4.jpg</p>
-                    </div>
-                </div>
-                <div class="gallery-row">
-                    <div class="image">
-                        <img src="media/im-2.jpg" alt="Image 1.3.1.2.0">
-                        <p>im-2.jpg</p>
-                    </div>
-                    <div class="image">
-                        <img src="media/im2-warped-to-im4.jpg" alt="Image 1.3.1.2">
-                        <p>im2-warped-to-im4.jpg</p>
-                    </div>
-                </div>
-                <div class="gallery-row">
-                    <div class="image">
-                        <img src="media/im-3.jpg" alt="Image 1.3.1.3.0">
-                        <p>im-3.jpg</p>
-                    </div>
-                    <div class="image">
-                        <img src="media/im3-warped-to-im4.jpg" alt="Image 1.3.1.3">
-                        <p>im3-warped-to-im4.jpg</p>
+                        <img src="media/im1-warped-to-im2.jpg" alt="Image 1.3.1.1">
+                        <p>im1-warped-to-im2.jpg</p>
                     </div>
                 </div>
                 <div class="image">
-                    <img src="media/im-4.jpg" alt="Image 1.3.1.4">
-                    <p>im-4.jpg</p>
+                    <img src="media/im-2.jpg" alt="Image 1.3.1.2">
+                    <p>im-2.jpg</p>
                 </div>
                 <div class="gallery-row">
                     <div class="image">
-                        <img src="media/im-5.jpg" alt="Image 1.3.1.5.0">
-                        <p>im-5.jpg</p>
+                        <img src="media/im-3.jpg" alt="Image 1.3.1.3.3">
+                        <p>im-3.jpg</p>
                     </div>
                     <div class="image">
-                        <img src="media/im5-warped-to-im4.jpg" alt="Image 1.3.1.4">
-                        <p>im5-warped-to-im4.jpg</p>
-                    </div>
-                </div>
-                <div class="gallery-row">
-                    <div class="image">
-                        <img src="media/im-6.jpg" alt="Image 1.3.1.6.0">
-                        <p>im-6.jpg</p>
-                    </div>
-                    <div class="image">
-                        <img src="media/im6-warped-to-im4.jpg" alt="Image 1.3.1.5">
-                        <p>im6-warped-to-im4.jpg</p>
-                    </div>
-                </div>
-                <div class="gallery-row">
-                    <div class="image">
-                        <img src="media/im-7.jpg" alt="Image 1.3.1.7.0">
-                        <p>im-7.jpg</p>
-                    </div>
-                    <div class="image">
-                        <img src="media/im7-warped-to-im4.jpg" alt="Image 1.3.1.6">
-                        <p>im7-warped-to-im4.jpg</p>
+                        <img src="media/im3-warped-to-im2.jpg" alt="Image 1.3.1.4">
+                        <p>im3-warped-to-im2.jpg</p>
                     </div>
                 </div>
                 <p>
@@ -237,7 +189,8 @@
                     between 2 images with correspondence points detailing the levels of perspective adjustment.
                     However,
                     in this rectifying task, I do not use homograhy between 2 images, but one image and another with
-                    correspondence points of a square or a rectangle, and choose ONLY 4 correspondence points on the
+                    correspondence points of a square or a rectangle, and choose ONLY 4 correspondence points (forming a
+                    Square or a Rectangle to ensure rectified warping effects) on the
                     image whose perspective I wish to rectify, and I ensured the order of points are the same no
                     matter
                     the order they are selected. Afterwards, the image is being warped using the
@@ -245,9 +198,14 @@
                     function to the square or rectangle perspective, which works especally well for images with
                     rectangular or square features before warping allowing for easy correspondence points selection.
                 </p>
-                <p></p>
-                I have the following example of a image of a street in London and the resulting rectified
-                image.
+                <p>
+                    All the original images below have edges in a perspective that is non-parallel, and after
+                    rectification, most of the edges are warped to parallel perspective and look more justified than
+                    before.
+                </p>
+                <p>
+                    I have the following example of a image of a box and the resulting rectified
+                    image.
                 </p>
                 <div class="gallery-row">
                     <div class="image">
@@ -303,7 +261,7 @@
                     </p>
                     <div class="image">
                         <img src="media/ims-mosaic-overlaid.jpg" alt="Image 1.4.1">
-                        <p>ims-mosaic-overlaid(345-4-centered).jpg</p>
+                        <p>ims-mosaic-overlaid(123-2-centered).jpg</p>
                     </div>
                     <p>
                         We can see that the warped images connect almost perfectly, exhibiting the stitched result
@@ -320,17 +278,6 @@
                         stitched
                         image.
                     </p>
-                    <p>
-                        I later also extended the number of photos stitched together from 3 to 7, still having the 4th
-                        photo being the center, and included the Laplacian Pyramid for blurring the artifacts between
-                        warped images overlaid together, though containing some blurriness, potentially due to
-                        variations in the correspondence points selection accuracy and how strongly teh perspective of
-                        the image like teh 1st and the 7th are being shifted by.
-                    </p>
-                    <div class="image">
-                        <img src="media/ims-mosaic-overlaid-all.jpg" alt="Image 1.4.2">
-                        <p>ims-mosaic-overlaid(1234567-4-centered).jpg</p>
-                    </div>
                     <p>
                         Another result is the pictures taken at Salt Lake City Intl. Airport for a total of 4 photos
                         with the 2nd one being the center. The photos having some edges not being perfectly aligned
@@ -395,50 +342,380 @@
                         </div>
                     </div>
                     <p>
-                        One other result is the pictures taken at my apartment.
+                        One other result is the pictures taken at a classroom in Wheeler Hall.
                     </p>
                     <div class="image">
-                        <img src="media/ims-mosaic-overlaid-p.jpg" alt="Image 1.4.3">
-                        <p>ims-mosaic-overlaid-p(123-2-centered).jpg</p>
+                        <img src="media/ims-mosaic-overlaid-bb.jpg" alt="Image 1.4.3">
+                        <p>ims-mosaic-overlaid-bb(123-2-centered).jpg</p>
                     </div>
                     <p>
                         Here are the individual photos in their original and warped forms:
                     </p>
                     <div class="gallery-row">
                         <div class="image">
-                            <img src="media/p-1.jpg" alt="Image 1.4.4.1">
-                            <p>p-1.jpg</p>
+                            <img src="media/bb-1.jpg" alt="Image 1.4.4.1">
+                            <p>bb-1.jpg</p>
                         </div>
                         <div class="image">
-                            <img src="media/p-im1-warped-to-im2.jpg" alt="Image 1.4.4.2">
-                            <p>p-im1-warped-to-im2.jpg</p>
+                            <img src="media/bb-im1-warped-to-im2.jpg" alt="Image 1.4.4.2">
+                            <p>bb-im1-warped-to-im2.jpg</p>
                         </div>
+                    </div>
+                    <div class="image">
+                        <img src="media/im1-im2-bb-correspondence.jpg" alt="Image 1.4.4.2.1">
+                        <p>im1-im2-bb-correspondence.jpg</p>
+                    </div>
+                    <div class="gallery-row">
                         <div class="image">
-                            <img src="media/im1-im2-p-correspondence.jpg" alt="Image 1.4.4.2.1">
-                            <p>im1-im2-p-correspondence.jpg</p>
+                            <img src="media/bb-2.jpg" alt="Image 1.4.4.3">
+                            <p>bb-2.jpg</p>
                         </div>
                     </div>
                     <div class="gallery-row">
                         <div class="image">
-                            <img src="media/p-2.jpg" alt="Image 1.4.4.3">
-                            <p>p-2.jpg</p>
+                            <img src="media/bb-3.jpg" alt="Image 1.4.4.4">
+                            <p>bb-3.jpg</p>
+                        </div>
+                        <div class="image">
+                            <img src="media/bb-im3-warped-to-im2.jpg" alt="Image 1.4.4.5">
+                            <p>bb-im3-warped-to-im2.jpg</p>
                         </div>
                     </div>
-                    <div class="gallery-row">
-                        <div class="image">
-                            <img src="media/p-3.jpg" alt="Image 1.4.4.4">
-                            <p>p-3.jpg</p>
-                        </div>
-                        <div class="image">
-                            <img src="media/p-im3-warped-to-im2.jpg" alt="Image 1.4.4.5">
-                            <p>p-im3-warped-to-im2.jpg</p>
-                        </div>
-                        <div class="image">
-                            <img src="media/im2-im3-p-correspondence.jpg" alt="Image 1.4.4.5.1">
-                            <p>im2-im3-p-correspondence.jpg</p>
-                        </div>
+                    <div class="image">
+                        <img src="media/im2-im3-bb-correspondence.jpg" alt="Image 1.4.4.5.1">
+                        <p>im2-im3-bb-correspondence.jpg</p>
                     </div>
                 </div>
+    </section>
+
+    <section id="implementation">
+        <div class="container">
+            <h1>Part B: Feature Matching for Autostitching</h1>
+            <h2>Step 1 - Detecting Corner Features in an Image</h2>
+            <div>
+                <p>
+                    I detected all the Harris Corners on an image using the provided <code>harris.py</code> (in
+                    <code>lib.py</code> file) which dots the entire image with points, which I will later filter out
+                    most to select the most suitable corner points, as shown below:
+                </p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/im1-Harris Corner.jpg" alt="Image harris.1">
+                        <p>im1-Harris Corner.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im2-Harris Corner.jpg" alt="Image harris.2">
+                        <p>im2-Harris Corner.jpg</p>
+                    </div>
+                </div>
+                <p>
+                    I then implemented the Adaptive Non-Maximal Suppression (ANMS) on the Harris Corner points to select
+                    a subset of the corner points from an image. ANMS is designed to retain strong corner points while
+                    ensuring that they are spatially well-distributed across the image, and this is crucial for tasks
+                    like image matching and stitching which I implemented in later parts.
+                </p>
+                <p>
+                    The Harris Corners detection algorithm provided me a series of corner points and their corresponding
+                    corner strengths.
+                    I then ordered the corner points in descending order by their corner strengths and ensuring the
+                    strongest corners are considered first during suppression process.
+                </p>
+                <p>
+                    And for each corner point, I initialize the radius to infinity as it represents the minimum distance
+                    to a stronger corner point that satisfy the conditions.
+                </p>
+                <p>
+                    Then I also considered all previously processed corner points since they have higher corner
+                    strengths
+                    from being sorted first. And I calculated the Euclidean distance between the current corner point
+                    and
+                    each stronger corner point using the provided <code>dist2</code> function. Then I find the minimum
+                    distance to a stronger corner and setting the radius to that minimal distance.
+                </p>
+                <p>
+                    \[
+                    r_i = \min_j\{\sqrt{(x_i - x_j)^2 + (y_i - y_j)^2}\} \text{ for all } j \text{ where } c_j > c_i
+                    \]
+                </p>
+                <p>
+                    I then calculated a minimum alloable suppression radius for the current corner point which is
+                    proportional to its corner strength relative tothe max corner strength, by using the
+                    <code>c_robust</code> parameter which controlls the sensitivity of suppression radius to corner
+                    strength.
+                    Then if the minimum distance (radius) is greater than the minimal radius, I update teh suppression
+                    radius for corner point i, otherwise still set to infinity, and this ensures that only corner points
+                    sufficiently distant from stronger corners and are beyond minimum allowable radius are considered
+                    for selection.
+                </p>
+                <p>
+                    After that, i selected the top 500 corner points with the largest suppression radii and are evenly
+                    distributed across the image. See results below:
+                </p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/im1-ANMS-Processed Corners.jpg" alt="Image ANMS.1">
+                        <p>im1-ANMS-Processed Corners.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im2-ANMS-Processed Corners.jpg" alt="Image ANMS.2">
+                        <p>im2-ANMS-Processed Corners.jpg</p>
+                    </div>
+                </div>
+            </div>
+
+            <h2>Step 2 - Extracting a Feature Descriptor for each Feature Point</h2>
+            <div>
+                <p>
+                    I then implemented the Feature Descriptor Extraction for each feature point found in the previous
+                    part to facilitae accurate image matching. I 1st convert the input image to grayscale if it is not
+                    already to simplify feature descriptor extraction by reducing data dimensionality and use corner
+                    points identified from previous ANMS result as centers for feature descriptor extraction.
+                </p>
+                <p>
+                    For each point, I extacted a large square patch around the feature point, chosen to have the size of
+                    40x40 pixels to ensure sufficient contextual info around it is pertained and is essential for
+                    creating stable descriptor. I also checked for whether or not the entire patch lies within the image
+                    boundaries to avoid errors during extraction.
+                </p>
+                <p>
+                    Then apply Gaussian blur to the patch with the standard deviation (sigma) of the Gaussian kernel as
+                    the parameter controlling blurring extent and helps reduce impact of noise and minor variations in
+                    image making teh descriptor more robust.
+                </p>
+                <p>
+                    Then i downsampled teh patches to have 0 mean and unit (1) variance (bias/gain normalization) to
+                    make descriptor invariant to changes in lighting and contrast. I then flatten the normalized 8x8
+                    patch into a 64 dimensional vector to represent feature of teh patch and a descriptor for
+                    corresponding feature point.
+                </p>
+            </div>
+
+            <h2>Step 3 - Matching Extacted Feature Descriptors between two Images</h2>
+            <div>
+                <p>
+                    Then I implemented Feature Descriptors matching by identifying pairs of feature descriptors from 2
+                    different images likely corresponding to the same physical point in teh scene.
+                </p>
+                <p>
+                    For each descriptor in the 1st image, I find the 2 nearest neighbor descriptors in the 2nd image
+                    based on the <code>dist2</code> (Euclidean distance) function, and then I determined whether the
+                    match is valid by calculating if the ratio of the distance to the neighrest neighbor to the
+                    distance to the 2nd-nearest neighbor is belowed teh specified threshold, as proposed by David Lowe.
+                </p>
+                <p>
+                    By using this criterion, I filter out ambiguous matches where closest descriptor not significantly
+                    closer than the second-closest. I tested out several times and observed the empirical evidence and
+                    differences between images
+                    matched, and set the threshold value accordingly.
+                </p>
+                <p>
+                    I then also plot the matched points b/w 2 images
+                    on a single image to visualize the correspondences, as shown below:
+                </p>
+                <div class="image">
+                    <img src="media/im1-im2-matches.jpg" alt="Image Match">
+                    <p>im1-im2-matches.jpg</p>
+                </div>
+
+                <p>
+                    Here I also implemented the same for the other image sets, here are some example shown:
+                </p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/im1_slc-Harris Corner.jpg" alt="Image harris_slc.1">
+                        <p>im1_slc-Harris Corner.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im2_slc-Harris Corner.jpg" alt="Image harris_slc.2">
+                        <p>im2_slc-Harris Corner.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im1_slc-ANMS-Processed Corners.jpg" alt="Image ANMS_slc.1">
+                        <p>im1_slc-ANMS-Processed Corners.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im2_slc-ANMS-Processed Corners.jpg" alt="Image ANMS_slc.2">
+                        <p>im2_slc-ANMS-Processed Corners.jpg</p>
+                    </div>
+                </div>
+                <div class="image">
+                    <img src="media/im1_slc-im2_slc-matches.jpg" alt="Image Match (SLC)">
+                    <p>im1_slc-im2_slc-matches.jpg</p>
+                </div>
+
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/im1_bb-Harris Corner.jpg" alt="Image harris_bb.1">
+                        <p>im1_bb-Harris Corner.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im2_bb-Harris Corner.jpg" alt="Image harris_bb.2">
+                        <p>im2_bb-Harris Corner.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im1_bb-ANMS-Processed Corners.jpg" alt="Image ANMS_bb.1">
+                        <p>im1_bb-ANMS-Processed Corners.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im2_bb-ANMS-Processed Corners.jpg" alt="Image ANMS_bb.2">
+                        <p>im2_bb-ANMS-Processed Corners.jpg</p>
+                    </div>
+                </div>
+                <div class="image">
+                    <img src="media/im1_bb-im2_bb-matches.jpg" alt="Image Match (Blackboard)">
+                    <p>im1_bb-im2_bb-matches.jpg</p>
+                </div>
+                <p>
+                    It is obvious to see that the common parts of the 2 images have correspondence points capturing the
+                    corner details and characteristics well, while there do exist some points that exist in one image
+                    and not the other, which may cause some imperfections, but later it is shown that they have
+                    miniscule effects.
+                </p>
+            </div>
+
+            <h2>Step 4 - RANSAC (Homography Computation)</h2>
+            <div>
+                <p>
+                    I then implemented the Random Sample Consensus (RANSAC) functionality for computation of
+                    homographies.
+                </p>
+                <p>
+                    I start by repeatedly selecting a random subset of matched point pairs (4 points) and compute a
+                    homography H based on these sample points. I Then, for each sample, I use the homography function
+                    from part A to calculate teh homography using the direct linear transformation. Then, I apply the
+                    computed H homography to all the matched points and count how many of the transformation by H
+                    able to create residuals below the threshold, and repeatedly I am able to find teh H that gives
+                    the maximum number of inliers (i.e., points randomly selected but happen to fit well) and this will
+                    be the best estimate under the specified number of iterations of random sampling.
+                </p>
+                <p>
+                    Below I show the optimal points selected by RANSAC:
+                </p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/RANSAC-4-points-im1.jpg" alt="Image RANSAC points 1">
+                        <p>RANSAC-4-points-im1.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/RANSAC-4-points-im2.jpg" alt="Image RANSAC points 2">
+                        <p>RANSAC-4-points-im2.jpg</p>
+                    </div>
+                </div>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/RANSAC-4-points-im1_slc.jpg" alt="Image RANSAC points 1 SLC">
+                        <p>RANSAC-8-points-im1_slc.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/RANSAC-4-points-im2_slc.jpg" alt="Image RANSAC points 2 SLC">
+                        <p>RANSAC-8-points-im2_slc.jpg</p>
+                    </div>
+                </div>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/RANSAC-4-points-im1_bb.jpg" alt="Image RANSAC points 1 Blackboard">
+                        <p>RANSAC-12-points-im1_bb.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/RANSAC-4-points-im2_bb.jpg" alt="Image RANSAC points 2 Blackboard">
+                        <p>RANSAC-12-points-im2_bb.jpg</p>
+                    </div>
+                </div>
+            </div>
+
+            <h2>Step 5 - Mosaic using Autostitching</h2>
+            <div>
+                <p>
+                    And after calculating the optimal homography matrix, I can warp the images and create the mosaics
+                    like part A before, as shown below. These mosaics look almost the same as selecting the
+                    correspondence points manually, indicating success in the autostitching algorithms implemented.
+                </p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/im1_RANSAC_warped.jpg" alt="Image RANSAC Warped 1">
+                        <p>im1_RANSAC_warped.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im2_RANSAC_warped.jpg" alt="Image RANSAC Warped 2">
+                        <p>im2_RANSAC_warped.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im3_RANSAC_warped.jpg" alt="Image RANSAC Warped 3">
+                        <p>im3_RANSAC_warped.jpg</p>
+                    </div>
+                </div>
+                <div class="image">
+                    <img src="media/ims-mosaic-overlaid-RANSAC-1.jpg" alt="Image RANSAC Mosaic">
+                    <p>ims-mosaic-overlaid-RANSAC-1.jpg</p>
+                </div>
+                <p>
+                    Similarly, I can also implement this on teh other image sets (selecting 4 points in RANSAC).
+                </p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/im1_slc_RANSAC_warped.jpg" alt="Image RANSAC Warped 1 SLC">
+                        <p>im1_slc_RANSAC_warped.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im2_slc_RANSAC_warped.jpg" alt="Image RANSAC Warped 2 SLC">
+                        <p>im2_slc_RANSAC_warped.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im3_slc_RANSAC_warped.jpg" alt="Image RANSAC Warped 3 SLC">
+                        <p>im3_slc_RANSAC_warped.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im4_slc_RANSAC_warped.jpg" alt="Image RANSAC Warped 4 SLC">
+                        <p>im4_slc_RANSAC_warped.jpg</p>
+                    </div>
+                </div>
+                <div class="image">
+                    <img src="media/ims-mosaic-overlaid-RANSAC-slc.jpg" alt="Image RANSAC Mosaic SLC">
+                    <p>ims-mosaic-overlaid-RANSAC-slc.jpg</p>
+                </div>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/im1_bb_RANSAC_warped.jpg" alt="Image RANSAC Warped 1 Blackboard">
+                        <p>im1_bb_RANSAC_warped.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im2_bb_RANSAC_warped.jpg" alt="Image RANSAC Warped 2 Blackboard">
+                        <p>im2_bb_RANSAC_warped.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im3_bb_RANSAC_warped.jpg" alt="Image RANSAC Warped 3 Blackboard">
+                        <p>im3_bb_RANSAC_warped.jpg</p>
+                    </div>
+                </div>
+                <div class="image">
+                    <img src="media/ims-mosaic-overlaid-RANSAC-bb.jpg" alt="Image RANSAC Mosaic Blackboard">
+                    <p>ims-mosaic-overlaid-RANSAC-bb.jpg</p>
+                </div>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/im1_bart_RANSAC_warped.jpg" alt="Image RANSAC Warped 1 BART">
+                        <p>im1_bart_RANSAC_warped.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im2_bart_RANSAC_warped.jpg" alt="Image RANSAC Warped 2 BART">
+                        <p>im2_bart_RANSAC_warped.jpg</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/im3_bart_RANSAC_warped.jpg" alt="Image RANSAC Warped 3 BART">
+                        <p>im3_bart_RANSAC_warped.jpg</p>
+                    </div>
+                </div>
+                <div class="image">
+                    <img src="media/ims-mosaic-overlaid-RANSAC-bart.jpg" alt="Image RANSAC Mosaic BART">
+                    <p>ims-mosaic-overlaid-RANSAC-bart.jpg</p>
+                </div>
+                <p>
+                    This mosaic looks slightly unrefined due to the fact the the images I took did not have the same
+                    center of projection due to difficulties arising in taking the photographs, but they are still
+                    almost perfectly aligned in the mosaic.
+                </p>
+            </div>
+        </div>
     </section>
 </body>
 
