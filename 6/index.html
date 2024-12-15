@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Final Project</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <title id="cs180-title">CS 180 - Final Project</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+
+<body>
+    <section id="header">
+        <div class="container">
+            <h1>CS 180 Final Project</h1>
+            <h2>Neural Radiance Field</h2>
+            <p> by Ziran Zhou</p>
+        </div>
+    </section>
+
+    <section id="overview">
+        <div class="container">
+            <h1>Overview</h1>
+            <p>In this project, I followed the instructions and the background introduction
+                of the spec and explored how to use neural radiance fields (NeRFs) to reconstruct 3D scenes from 2D
+                images by sampling and processing rays to handle coloring, angling, etc. Machine learning is also used
+                to test out how parameters and training affect the result quality.
+            </p>
+        </div>
+    </section>
+
+    <section id="implementation">
+        <div class="container">
+            <h1>Part 1: Fit a Neural Field to a 2D Image</h1>
+            <div>
+                <p>
+                    This first part I worked with ML modules to fit a neural field mapping 2d pixel coordinates u,v to
+                    RGB color rgb values. The mutilayer perceptron model is used.
+                </p>
+            </div>
+            <h2>Part 1.1 - Network</h2>
+            <div>
+                <p>
+                    Multilayer Perceptron (MLP) following the definition flow below:
+                </p>
+                <div class="image">
+                    <img src="media/mlp_img.jpg" alt="im1" class="mlp def">
+                </div>
+                <p>
+                    The MLP consists of a sequence of layers where each is designed t oprogressively extract higher
+                    level features from input and the 1st layer transforms the input dimensions to a higher-dimensional
+                    hidden layer where subsequent layers, activated by nonlinear functions, continue this transformation
+                    alike, till teh final layer reached and it will map these features to output which predicts the RGB
+                    values of input pixels.
+                </p>
+                <p>
+                    Positional Encoding: to enhance model capability at handling geometric nature, positional encoding
+                    is applied to the input pixel coordinates which include transformation the coordinates into a
+                    higher-dimensional space with sin/cos functions and helps interpret positional relationships b/w
+                    different pixels better.
+                </p>
+                <p>
+                    It is known that dataset has random pixel samples from images where each sample includes pixel
+                    coordinates and rgb values so a custom dataset class handles sample generation. Training is
+                    conducted so the model learns to predict the rgb values from pixel coordinates and during each
+                    iteration the model predictions are compared to actual values using MSE so the model parameters can
+                    be adjusted to minimize the loss so its accuracy improves over time of the training.
+
+                </p>
+                <p>
+                    Evaluate the model performance with Peak Signal-to-Noise Ratio (PSNR) where high values mean better
+                    reconstruction quality. During training, it is calculated at predefined intervals.
+                </p>
+                <p>
+                    Here are the images visualized, where the steps are also shown from pure noise to iteratively better
+                    results after the iteration intervals in b/w, and at teh end a final reconstructed image is
+                    generated. I also displayed my own chosen image of the Wilderbeest Migration reconstruction
+                    alongside the starter fox image.
+                </p>
+                <p>
+                    Hyperparameters Tuning: These images are also experimented w/ Hyperparameters Tuning, where I made
+                    these types and also plot out the PSNR values vs #iterations.
+                </p>
+                <p>
+                    <b>Original</b>: Layers (L)=10, Hidden Dimension=256, #Layers=3, Learning Rate (lr)=0.01
+                </p>
+                <p>
+                    <b>TopFreqCapped</b> (Highest Frequencies Capped): Layers (L)=5, Hidden Dimension=256, #Layers=3,
+                    Learning Rate (lr)=0.01
+                </p>
+                <p>
+                    <b>Wider</b>: Layers (L)=10, Hidden Dimension=512, #Layers=3, Learning Rate (lr)=0.01
+                </p>
+                <p>
+                    <b>IncrLR</b> (Increased Learning Rate): Layers (L)=10, Hidden Dimension=256, #Layers=3, Learning
+                    Rate
+                    (lr)=0.1
+                </p>
+                <p>
+                    <b>DecrLR</b> (Decreased Learning Rate): Layers (L)=10, Hidden Dimension=256, #Layers=3, Learning
+                    Rate (lr)=0.001
+                </p>
+                <p>
+                    <b>More Layers</b>: Layers (L)=10, Hidden Dimension=256, #Layers=10, Learning Rate (lr)=0.001
+                </p>
+                <p>Original (Default) Hyperparameters Configurations:</p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/hpt/Original/recon_iter_1.jpg" alt="im1_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/Original/recon_iter_20.jpg" alt="im20_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/Original/recon_iter_100.jpg" alt="im100_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/Original/recon_iter_500.jpg" alt="im500_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/Original/recon_iter_1000.jpg" alt="im1000_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/Original/recon_iter_2000.jpg" alt="im2000_wm">
+                    </div>
+                </div>
+                <p>Highest Frequencies Capped Configurations:</p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/hpt/TopFreqCapped/recon_iter_1.jpg" alt="im1_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/TopFreqCapped/recon_iter_20.jpg" alt="im20_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/TopFreqCapped/recon_iter_100.jpg" alt="im100_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/TopFreqCapped/recon_iter_500.jpg" alt="im500_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/TopFreqCapped/recon_iter_1000.jpg" alt="im1000_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/TopFreqCapped/recon_iter_2000.jpg" alt="im2000_wm">
+                    </div>
+                </div>
+                <p>Wider Hidden Layer Configurations:</p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/hpt/Wider/recon_iter_1.jpg" alt="im1_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/Wider/recon_iter_20.jpg" alt="im20_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/Wider/recon_iter_100.jpg" alt="im100_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/Wider/recon_iter_500.jpg" alt="im500_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/Wider/recon_iter_1000.jpg" alt="im1000_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/Wider/recon_iter_2000.jpg" alt="im2000_wm">
+                    </div>
+                </div>
+                <p>Increased Learning Rate Configurations:</p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/hpt/IncrLR/recon_iter_1.jpg" alt="im1_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/IncrLR/recon_iter_20.jpg" alt="im20_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/IncrLR/recon_iter_100.jpg" alt="im100_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/IncrLR/recon_iter_500.jpg" alt="im500_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/IncrLR/recon_iter_1000.jpg" alt="im1000_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/IncrLR/recon_iter_2000.jpg" alt="im2000_wm">
+                    </div>
+                </div>
+                <p>Decreased Learning Rate Configurations:</p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/hpt/DecrLR/recon_iter_1.jpg" alt="im1_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/DecrLR/recon_iter_20.jpg" alt="im20_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/DecrLR/recon_iter_100.jpg" alt="im100_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/DecrLR/recon_iter_500.jpg" alt="im500_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/DecrLR/recon_iter_1000.jpg" alt="im1000_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/DecrLR/recon_iter_2000.jpg" alt="im2000_wm">
+                    </div>
+                </div>
+                <p>More Layers Configurations:</p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/hpt/MoreLayers/recon_iter_1.jpg" alt="im1_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/MoreLayers/recon_iter_20.jpg" alt="im20_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/MoreLayers/recon_iter_100.jpg" alt="im100_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/MoreLayers/recon_iter_500.jpg" alt="im500_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/MoreLayers/recon_iter_1000.jpg" alt="im1000_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/MoreLayers/recon_iter_2000.jpg" alt="im2000_wm">
+                    </div>
+                </div>
+
+                <p>Final Reconstruction Comparisons:</p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/hpt/Original/final_recon.jpg" alt="im1_wm">
+                        <p>Original (Default) Hyperparameters Configurations</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/TopFreqCapped/final_recon.jpg" alt="im20_wm">
+                        <p>Highest Frequencies Capped Configurations</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/Wider/final_recon.jpg" alt="im100_wm">
+                        <p>Wider Hidden Layer Configurations</p>
+                    </div>
+                </div>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/hpt/IncrLR/final_recon.jpg" alt="im500_wm">
+                        <p>Increased Learning Rate Configurations</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/DecrLR/final_recon.jpg" alt="im1000_wm">
+                        <p>Decreased Learning Rate Configurations</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/MoreLayers/final_recon.jpg" alt="im2000_wm">
+                        <p>More Layers Configurations</p>
+                    </div>
+                </div>
+                <p>PSNR values Comparisons:</p>
+                <div class="image">
+                    <img src="media/start_psnrs.png" alt="start_psnrs">
+                    <p>More Layers Configurations</p>
+                </div>
+                <p>Summary:</p>
+                <p>Original: Final PSNR value =26.152965545654297</p>
+                <p>TopFreqCapped: Final PSNR value =25.188276290893555</p>
+                <p>Wider: Final PSNR value =26.904674530029297</p>
+                <p>IncrLR: Final PSNR value =6.5640997886657715</p>
+                <p>DecrLR: Final PSNR value =25.788864135742188</p>
+                <p>MoreLayers: Final PSNR value =27.344940185546875</p>
+
+
+
+
+
+
+                <p>Original (Default) Hyperparameters Configurations:</p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/hpt_wm/Original/recon_iter_1.jpg" alt="im1_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/Original/recon_iter_20.jpg" alt="im20_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/Original/recon_iter_100.jpg" alt="im100_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/Original/recon_iter_500.jpg" alt="im500_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/Original/recon_iter_1000.jpg" alt="im1000_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/Original/recon_iter_2000.jpg" alt="im2000_wm">
+                    </div>
+                </div>
+                <p>Highest Frequencies Capped Configurations:</p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/hpt_wm/TopFreqCapped/recon_iter_1.jpg" alt="im1_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/TopFreqCapped/recon_iter_20.jpg" alt="im20_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/TopFreqCapped/recon_iter_100.jpg" alt="im100_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/TopFreqCapped/recon_iter_500.jpg" alt="im500_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/TopFreqCapped/recon_iter_1000.jpg" alt="im1000_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/TopFreqCapped/recon_iter_2000.jpg" alt="im2000_wm">
+                    </div>
+                </div>
+                <p>Wider Hidden Layer Configurations:</p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/hpt_wm/Wider/recon_iter_1.jpg" alt="im1_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/Wider/recon_iter_20.jpg" alt="im20_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/Wider/recon_iter_100.jpg" alt="im100_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/Wider/recon_iter_500.jpg" alt="im500_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/Wider/recon_iter_1000.jpg" alt="im1000_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/Wider/recon_iter_2000.jpg" alt="im2000_wm">
+                    </div>
+                </div>
+                <p>Increased Learning Rate Configurations:</p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/hpt_wm/IncrLR/recon_iter_1.jpg" alt="im1_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/IncrLR/recon_iter_20.jpg" alt="im20_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/IncrLR/recon_iter_100.jpg" alt="im100_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/IncrLR/recon_iter_500.jpg" alt="im500_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/IncrLR/recon_iter_1000.jpg" alt="im1000_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/IncrLR/recon_iter_2000.jpg" alt="im2000_wm">
+                    </div>
+                </div>
+                <p>Decreased Learning Rate Configurations:</p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/hpt_wm/DecrLR/recon_iter_1.jpg" alt="im1_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/DecrLR/recon_iter_20.jpg" alt="im20_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/DecrLR/recon_iter_100.jpg" alt="im100_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/DecrLR/recon_iter_500.jpg" alt="im500_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/DecrLR/recon_iter_1000.jpg" alt="im1000_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/DecrLR/recon_iter_2000.jpg" alt="im2000_wm">
+                    </div>
+                </div>
+                <p>More Layers Configurations:</p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/hpt_wm/MoreLayers/recon_iter_1.jpg" alt="im1_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/MoreLayers/recon_iter_20.jpg" alt="im20_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/MoreLayers/recon_iter_100.jpg" alt="im100_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/MoreLayers/recon_iter_500.jpg" alt="im500_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/MoreLayers/recon_iter_1000.jpg" alt="im1000_wm">
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/MoreLayers/recon_iter_2000.jpg" alt="im2000_wm">
+                    </div>
+                </div>
+
+                <p>Final Reconstruction Comparisons:</p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/hpt_wm/Original/final_recon.jpg" alt="im1_wm">
+                        <p>Original (Default) Hyperparameters Configurations</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/TopFreqCapped/final_recon.jpg" alt="im20_wm">
+                        <p>Highest Frequencies Capped Configurations</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/Wider/final_recon.jpg" alt="im100_wm">
+                        <p>Wider Hidden Layer Configurations</p>
+                    </div>
+                </div>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/hpt_wm/IncrLR/final_recon.jpg" alt="im500_wm">
+                        <p>Increased Learning Rate Configurations</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/DecrLR/final_recon.jpg" alt="im1000_wm">
+                        <p>Decreased Learning Rate Configurations</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/MoreLayers/final_recon.jpg" alt="im2000_wm">
+                        <p>More Layers Configurations</p>
+                    </div>
+                </div>
+                <p>PSNR values Comparisons:</p>
+                <div class="image">
+                    <img src="media/migration_psnrs.png" alt="start_psnrs">
+                    <p>More Layers Configurations</p>
+                </div>
+                <p>Summary:</p>
+                <p>Original: Final PSNR value =19.937772750854492</p>
+                <p>TopFreqCapped: Final PSNR value =18.401409149169922</p>
+                <p>Wider: Final PSNR value =21.578712463378906</p>
+                <p>IncrLR: Final PSNR value =6.048798084259033</p>
+                <p>DecrLR: Final PSNR value =19.053743362426758</p>
+                <p>MoreLayers: Final PSNR value =19.040922164916992</p>
+
+                <p>Starter fox Original image comparison w/ FInal Reconstructed Image of Original Config & Best
+                    Emperical Config:</p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/start_img.jpg" alt="imorig">
+                        <p>Original Image</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/Original/final_recon.jpg" alt="imfrecon">
+                        <p>Final Recon (Original Config)</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt/Wider/final_recon.jpg" alt="imfrecon">
+                        <p>Final Recon (MoreLayers config)</p>
+                    </div>
+                </div>
+
+                <p>Wilderbeest Migration Original image comparison w/ FInal Reconstructed Image of Original Config &
+                    Best Emperical Config:</p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/wilderbeast_migration.jpg" alt="imorig_wm">
+                        <p>Original Image</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/Original/final_recon.jpg" alt="imfrecon_wm">
+                        <p>Final Recon (Original Config)</p>
+                    </div>
+                    <div class="image">
+                        <img src="media/hpt_wm/Wider/final_recon.jpg" alt="imfrecon_wm">
+                        <p>Final Recon (Wider Config)</p>
+                    </div>
+                </div>
+
+
+                <p>It is obvious that Increased Learining Rate by multiplying by 10 times completely tanked the psnr
+                    values, and all other Hyperparameters tuned lead to increased psnr over itrations and the eventual
+                    plateauing.</p>
+                <p>However, it is not indicative that which way of tuning the Hyperparameters is the best for every
+                    image, as MoreLayers have overall much higher psnr values than other configurations for starter fox
+                    image, while Wider have higher for wilderbeast_migration image.</p>
+            </div>
+        </div>
+
+
+        <div>
+            <p>. </p>
+            <p>. </p>
+            <p>. </p>
+            <p>. </p>
+        </div>
+
+
+
+
+        <div class="container">
+            <h1>Part 2: Fit a Neural Radiance Field from Multi-view Images</h1>
+            <div>
+                <p>
+                    This part of the project I used a Neural Radiance Field (NeRF) model designed to synthesize novel
+                    views of complex scenes to represent a 3D model from a series of 2D training images. It is achieved
+                    by training a MLP model learning a mapping from position and view direction to color & density,
+                    i.e., \(\textbf{T}: \{x,y,z,d\}\rightarrow\{r,g,b,\sigma\}\). The example used is a lego picture of
+                    200x200 with the corresponding camera poses. The MLP deep learning also infer volumetric properties
+                    of the scene to allow for realistic rendering from any viewpoint.
+                </p>
+            </div>
+            <h3>Step 2.1 - Create Rays from Cameras</h3>
+            <div>
+                <p>
+                    The dataset is laoded in from the provided code, and consists of [1] a set of traiing images
+                    captured
+                    from various angles around the object, [2] corresponding camera-to-world (c2w) transformation
+                    matrices
+                    providing camera orientation & position details for each image, [3] validation & [4] dataset for
+                    model validation evaluation & testing.
+                </p>
+                <p>
+                    Transform 2D image coordinates defined by origin (\(r_o\)) and normalized direction (\(r_d\)) into
+                    3D rays. This Camera-to-World Transformation converts camera coordinates into a universal world
+                    coordinate system
+                    for cross0views consistency.
+                </p>
+                <p>
+                    Another involves several geometric calculations such as from pixel coordinates \((x_c,y_c,z_c)\) to
+                    camera coordinates \((u,v)\) with the intrinsic matrix \(\textbf{K}\) as detailed in the spec. This
+                    Pixel-to-Camera Transformation trnsforms pixel coords to camera coords system based on intrinsic
+                    cmaera parameters.
+                </p>
+            </div>
+
+            <h3>Step 2.2 - Sampling</h3>
+            <div>
+                <p>
+                    I then performed Sampling Rays from images where random pixel coordinates, like in part 1, & their
+                    cooresponding colors were sampled from individual images but teh focus shifts to converting these
+                    pixel coordinates to 3d ray paths using camera parameters.
+                </p>
+                <p>
+                    Camera parameters like focal (length) & principal point (center of image) & pixel coordinates are
+                    transformed into camera space coordiantes, and also the camera space to world coordinates system.
+                </p>
+                <p>
+                    To ensure ray correctly represent pixel a small offset is added to pixel coordinates \(u,v\) as
+                    \(u+.5,v+.5\) before transformation, and ensures rays originate from cenetr of each pixel and not
+                    the corner so tehre is better rendering accuracy (part 2.4 & 2.5).
+                </p>
+                <p>
+                    The rays are broken down into points along each where they are initially sampled uniformly b/w
+                    defined near & far bounds (2.0, 6.0 meters from camera) through linear interpolation of depths along
+                    ray paths, through the formula \(\textbf{x} = \textbf{R}_o + \textbf{R}_d * t\), where
+                    \(\textbf{R}_o\) is the ray origin and \(\textbf{R}_d\) is the ray direction, and \(t\) is the
+                    interpolated depth.
+                </p>
+                <p>
+                    Perturbations are added to prevent overfitting as they randomly introduce robustness by adjusting
+                    each depth sample by a small random value scaled by witdth of sampling interval, slightly shifting
+                    sample point along the ray.
+                </p>
+                <p>Here is an image from the course website illustrating teh concept:</p>
+                <div class="image">
+                    <img src="media/nerf_img_spec.png" alt="nerf_concept">
+                    source: https://inst.eecs.berkeley.edu/~cs180/fa23/463_files/nerf_img.png
+                </div>
+            </div>
+
+            <p>. </p>
+
+            <h3>Step 2.3 - Putting the Dataloading All Together</h3>
+            <div>
+                <p>
+                    Ran the 1st provided code on spec and generated the viser image & downloaded:
+                </p>
+                <div class="image">
+                    <img src="media/viser-1.png" alt="viser1">
+                </div>
+                <p>
+                    <b>[OPTIONAL & COMMENTED OUT]
+                    </b> Ran the 2nd provided code on spec and generated the viser images &
+                    downloaded:
+                </p>
+                <div class="gallery-row">
+                    <div class="image">
+                        <img src="media/viser-2.png" alt="viser2">
+                    </div>
+                    <div class="image">
+                        <img src="media/viser-3.png" alt="viser3">
+                    </div>
+                    <div class="image">
+                        <img src="media/viser-4.png" alt="viser4">
+                    </div>
+                </div>
+            </div>
+
+            <h3>Step 2.4 - Neural Radiance Field</h3>
+            <p>
+                I built a deep neural network w/ multiple layers designed to capture 3d(positions & view directions)
+                to color & opacity mappings. The model architecture allows learning of the mapping.
+            </p>
+            <p>
+                The model (full architecture shown below) is trained with the training dataset of rays with their rgb
+                values, and as learning
+                proceeds, and the more, the fewer the loss (error) and more accurate the reconstruction (see part
+                2.5). Similar to Part 1, the performance is evaluated by PSNR value b/w rendered images and actual
+                images from validation set.
+            </p>
+            <div class="image">
+                <img src="media/mlp_nerf.png" alt="viser4">
+            </div>
+
+            <h3>Step 2.5 - Volume Rendering</h3>
+            <div>
+                <p>
+                    NeRF model uses volume rendering to composite a 2D image from the 3D sampled points along the rays,
+                    estimating color & density using trained MLP network at each point along the ray & accumulate them
+                    to form final pixel colors. The Adam optimizer is trained with batch size of 10000, learning rate of
+                    0.001, and iterations of 5000. The PSNR curve is generate and shown below, and as required, the PSNR
+                    is rises as iterations go on and stays steadily above 23:
+                </p>
+                <div class="image">
+                    <img src="media/plot.png" alt="vrend300">
+                </div>
+                <p>
+                    . - First calculate the transparency along each ray to determined how much each point contributes to
+                    the final image
+                </p>
+                <p> . - (Bells & Whistles) integrate a background color for when parts of teh ray do not intersect the
+                    object.
+                </p>
+            </div>
+            <div class="gallery-row">
+                <div class="image">
+                    <img src="media/volrend_test_res300.jpg" alt="vrend300">
+                    <p>iteration=300</p>
+                </div>
+                <div class="image">
+                    <img src="media/volrend_test_res600.jpg" alt="vrend600">
+                    <p>iteration=600</p>
+                </div>
+                <div class="image">
+                    <img src="media/volrend_test_res1200.jpg" alt="vrend1200">
+                    <p>iteration=1200</p>
+                </div>
+                <div class="image">
+                    <img src="media/volrend_test_res1800.jpg" alt="vrend1800">
+                    <p>iteration=1800</p>
+                </div>
+            </div>
+            <div class="gallery-row">
+                <div class="image">
+                    <img src="media/volrend_test_res2700.jpg" alt="vrend2700">
+                    <p>iteration=2700</p>
+                </div>
+                <div class="image">
+                    <img src="media/volrend_test_res4800.jpg" alt="vrend4800">
+                    <p>iteration=4800</p>
+                </div>
+                <div class="image">
+                    <img src="media/volrend_test_res7500.jpg" alt="vrend7500">
+                    <p>iteration=7500</p>
+                </div>
+                <div class="image">
+                    <img src="media/volrend_test_res9900.jpg" alt="vrend9900">
+                    <p>iteration=9900</p>
+                </div>
+            </div>
+
+            <p>The images below are of different camera position & angles for depth & rgb rendering:</p>
+            <div class="gallery-row">
+                <div class="image">
+                    <img src="media/depths/render_0.jpg" alt="depth">
+                    <p>render 0</p>
+                </div>
+                <div class="image">
+                    <img src="media/depths/render_7.jpg" alt="depth">
+                    <p>render 7</p>
+                </div>
+                <div class="image">
+                    <img src="media/depths/render_15.jpg" alt="depth">
+                    <p>render 15</p>
+                </div>
+                <div class="image">
+                    <img src="media/depths/render_23.jpg" alt="depth">
+                    <p>render 23</p>
+                </div>
+                <div class="image">
+                    <img src="media/depths/render_31.jpg" alt="depth">
+                    <p>render 31</p>
+                </div>
+                <div class="image">
+                    <img src="media/depths/render_41.jpg" alt="depth">
+                    <p>render 41</p>
+                </div>
+            </div>
+            <div class="gallery-row">
+                <div class="image">
+                    <img src="media/vrends/render_0.jpg" alt="vrend">
+                    <p>render 0</p>
+                </div>
+                <div class="image">
+                    <img src="media/vrends/render_7.jpg" alt="vrend">
+                    <p>render 7</p>
+                </div>
+                <div class="image">
+                    <img src="media/vrends/render_15.jpg" alt="vrend">
+                    <p>render 15</p>
+                </div>
+                <div class="image">
+                    <img src="media/vrends/render_23.jpg" alt="vrend">
+                    <p>render 23</p>
+                </div>
+                <div class="image">
+                    <img src="media/vrends/render_31.jpg" alt="vrend">
+                    <p>render 31</p>
+                </div>
+                <div class="image">
+                    <img src="media/vrends/render_41.jpg" alt="vrend">
+                    <p>render 41</p>
+                </div>
+            </div>
+            <p>Then, generate the videos (in the form of gif files) of depths and rgb rendering.</p>
+            <div class="gallery-row">
+                <div class="image">
+                    <img src="media/depth.gif" alt="depthgif">
+                    <p>depth gif</p>
+                </div>
+                <div class="image">
+                    <img src="media/nerf.gif" alt="nerfgif">
+                    <p>rgb gif after 5000 iterations</p>
+                </div>
+                <div class="image">
+                    <img src="media/nerf-1200.gif" alt="nerf1200gif">
+                    <p>rgb gif after 1200 iterations</p>
+                </div>
+                <div class="image">
+                    <img src="media/nerf-500.gif" alt="nerf500gif">
+                    <p>rgb gif after 500 iterations</p>
+                </div>
+            </div>
+
+            <h3>Bells & Whistles - Changing Background in Volume Rendering</h3>
+            <p>
+                Then I modified the <code>volrend</code> function to take into account of the color I want to change the
+                background to, and generated the following videos of background colors Sapphire, Crimson, and Lavender:
+            </p>
+            <div class="gallery-row">
+                <div class="image">
+                    <img src="media/nerf_bgSaph.gif" alt="saph">
+                </div>
+                <div class="image">
+                    <img src="media/nerf_bgCrms.gif" alt="crms">
+                </div>
+                <div class="image">
+                    <img src="media/nerf_bgLvdr.gif" alt="lvdr">
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+
+</html>
