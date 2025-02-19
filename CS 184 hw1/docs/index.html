@@ -1,0 +1,538 @@
+<html>
+
+<head>
+	<script type="text/javascript" async
+		src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=default'></script>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+	<style>
+		h1 {
+			text-align: center;
+		}
+
+		.container {
+			margin: 0 auto;
+			padding: 60px 20%;
+		}
+
+		figure {
+			text-align: center;
+		}
+
+		img {
+			display: inline-block;
+		}
+
+		body {
+			font-family: 'Inter', sans-serif;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<h1>CS184/284A Spring 2025 Homework 1 Write-Up</h1>
+		<div style="text-align: center;">Name: Ziran Zhou</div>
+
+		<br>
+
+		Link to webpage: (TODO) <a
+			href="https://github.com/cal-cs184-student/sp25-hw1-doogonotpu/blob/master/docs/index.html">cs184.eecs.berkeley.edu/sp25</a>
+
+		<br>
+
+		Link to GitHub repository: (TODO) <a href="https://github.com/cal-cs184-student/sp25-hw1-doogonotpu">
+			https://github.com/cal-cs184-student/sp25-hw1-doogonotpu</a>
+
+		<figure>
+			<img src="images/image1.1.png" alt="Lion" style="width:50%" />
+			<figcaption>You can add images with captions!</figcaption>
+		</figure>
+
+		<!--
+		We've already added one heading per task, to make your write-up as navigable when grading. Please fit your write-up within these sections!
+		-->
+
+		<h2>Overview</h2>
+		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole.
+		Share your thoughts on what interesting things you've learned from completing the homework.
+
+		<h2>Task 1: Drawing Single-Color Triangles</h2>
+		<p>I start by computing the Bounding Box with the smallest axis-aligned rectangle completely containing the
+			triangle, and derived by taking minimum and maximum \(x\) and \(y\) values of triangle vertices \((x_0,
+			y_0)\), \((x_1,
+			y_1)\), and \((x_2, y_2)\), and for each pixel \((x,y)\) in the bounding box, I compute a sample position
+			shifted
+			from the bottom-left corner by adding .5 to the \(x\) and \(y\) coordinate positions, ensuring consistency
+			with
+			typical center sampling rule.</p>
+		<p>
+			Then I check if the sample is inside the triangle by the Edge Function for point-in-triangle test that is if
+			the
+			sample point lies in or out of that edge and if the point lies on correct side of all 3 edges it is inside
+			the
+			triangle. The reference cross product is calculated as
+			\((x_1-x_0)\times(y_2-y_0)-(y_1-y_0)\times(x_2-x_0)\).</p>
+		<p>
+			And for every edge, a similar cross product with the sample coordinate substituted in is calculated, and if
+			all
+			3 calculation results have the same sign as the cross product (<code>area</code>) or are 0 then it is inside
+			the
+			triangle's
+			boundary. Then, use the <code>fill_pixel</code> to fill in the pixel inside the triangle.</p>
+		<p>Since the bounding box is used for sampling, the algorithm never checks any pixel outside the smallest
+			rectangle enclosing the triangle so it is no worse than one that checks each sample within the bounding box
+			of the triangle. And with the bounding box approach the work is reduced to per-triangle substantially by
+			dropping areas cannot overlap the triangle during prior period.</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+				<tr>
+					<td style="text-align: center;">
+						<img src="images/image1.png" width="1000px" />
+						<figcaption>screenshot of basic/test4.svg with the default viewing parameters and with the pixel
+							inspector centered on an interesting part of the scene.</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+
+		<h2>Task 2: Antialiasing by Supersampling</h2>
+		<p>
+			I use supersampled grid per pixel to antialias, by subdividing each final pixel into
+			\(\sqrt{\text{sample_rate}} \times \sqrt{\text{sample_rate}}\) sub-pixel samples.
+
+			<code>sample_buffer</code> which stores <code>width * height * sample_rate</code> colors and each pixel has
+			<code>sample_rate</code> color entries of one per sub-sample, and <code>sample_rate</code>
+		</p>
+		<p>
+			Additional changes made to the rasterization of triangles in Task 1 include for each integer pixel
+			coordinate \((x,y)\) within the bounding box and I loop over all sub-pixel offsets and calculate with
+			\((x+\frac{\text{sub}X+0.5}{\sqrt{\text{sample_rate}}} + \frac{\text{sub}Y +
+			0.5}{\sqrt{\text{sample_rate}}})\). Then for
+			each subsample perform the same procedure in Task 1 to test if it is inside the triangle, and if contained
+			inside write the color into <code>smaple_buffer</code>, otherwise leave it at default or previously written
+			color.
+		</p>
+		<p>
+			After all initial rasterization into supersample buffer, I average each pixel's subsample in
+			<code>resolve_to_framebuffer</code> where the final color for teh pixel is calculated as
+			\(\frac{1}{\text{sample_rate}} \sum_{k=0}^{1/\text{sample_rate}} \text{sample_buffer}(\text{index}(x,y) +
+			k)\) which is later converted to an 8-bit RGB values to store in <code>rgb_framebuffer_target</code>.
+		</p>
+		<h3>
+			Visualizations
+		</h3>
+		<p>
+			We can see below the comparison of Sample Rates of 1, 4, 16 (basic/test4.svg):
+		</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+				<tr>
+					<td style="text-align: center;">
+						<img src="images/image1.png" width="950px" />
+						<img src="images/image2.png" width="950px" />
+						<img src="images/image3.png" width="950px" />
+						<figcaption>Comparisons on different sample rates</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<p>
+			Sample Rate = 1 (No Antialiasing) which produces “jaggies” on non-level and
+			non-perpendicular edges
+		</p>
+		Sample Rate = 4 and the edges appear smoother with fewer but still some jaggies
+		</p>
+		Sample Rate = 16 and the edges are even more refined and smooth
+		</p>
+
+		<h2>Task 3: Transforms</h2>
+		<p>
+			I implemented the following 2D transforms in homogeneous coordinates in <code>transform.cpp</code>:
+		</p>
+		<h3>
+			Translation
+		</h3>
+		<p>
+			\[
+			\begin{bmatrix}
+			1 & 0 & dx \\
+			0 & 1 & dy \\
+			0 & 0 & 1
+			\end{bmatrix}
+			\]
+			which shifts the point of coordinates \((x,y)\) by vector \((dx, dy)\).
+		</p>
+		<h3>
+			Scaling
+		</h3>
+		<p>
+			\[
+			\begin{bmatrix}
+			sx & 0 & 0 \\
+			0 & sy & 0 \\
+			0 & 0 & 1
+			\end{bmatrix}
+			\]
+			which resizes in the \(x, y\) directions by \(sx, sy\).
+		</p>
+		<h3>
+			Rotation
+		</h3>
+		<p>
+			\[
+			\begin{bmatrix}
+			\cos{\theta} & \sin{\theta} & dx \\
+			-\sin{\theta} & \cos{\theta} & dy \\
+			0 & 0 & 1
+			\end{bmatrix}
+			, \text{ radian calculation: } \theta = \frac{\pi * \text{deg}}{180^º}\]
+			which rotates in counterclockwise direction by \(\text{deg}\) degrees wrt the origin.
+		</p>
+
+		<h3>Visualization</h3>
+		<p>I created a new file <code>my_robot.svg</code> where I modified the visualized man (assuming it is facing
+			INTO
+			the screen), the head to rotate 75º instead of 45º, and rotated the upper-left leg to be horizontal, looking
+			like as it lifted its left leg, then rotated the upper-right arm (both sections) to 45º against the right x
+			axis.
+		</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+				<tr>
+					<td style="text-align: center;">
+						<div style="display: flex; justify-content: center; gap: 10px;">
+							<img src="images/image4.png" width="400px" />
+							<img src="images/image4.1.png" width="400px" />
+						</div>
+						<figcaption>Original Robot vs Modified My_Robot</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+
+		<h3>Task 3 - Extra Credit</h3>
+		<p>I implemented the new keystrokes "," or "<", "." or ">" in <code>drawrend.cpp</code> to rotate the robots
+				around the frame's left edge.
+		</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+				<tr>
+					<td style="text-align: center;">
+						<div style="display: flex; justify-content: center; gap: 10px;">
+							<img src="images/image5.1.png" width="200px" />
+							<img src="images/image5.2.png" width="200px" />
+							<img src="images/image5.3.png" width="200px" />
+							<img src="images/image5.4.png" width="200px" />
+						</div>
+						<figcaption>Original Robot vs Modified My_Robot</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+
+
+
+		<h2>Task 4: Barycentric coordinates</h2>
+		<p>
+			Barycentric Coordinates allow easy interpolation of colors inside a triangle. We achieve this by assigning
+			the vertices of a triangle as A, B, C. Then, We represent P as the weighted summary of these vertices, where
+			the weights sum to 1.
+
+			\[P = \alpha\times A + \beta\times B + \gamma\times C \text{ where} \alpha + \beta + \gamma = 1\]
+		</p>
+		<p>
+			The three weights, \(\alpha, \beta, \gamma\) are the barycentric coordinates of \(P\) relative to the
+			triangle \(ABC\) and they allow interpolation of colors across its area, i.e., \(\text{Color}(P) = \alpha
+			\cdot \text{Color}(A) + \beta \cdot \text{Color}(B) + \gamma \cdot \text{Color}(C)\), and we can then
+			calculate the barycentric coordinates by selecting a point \(P\) inside the triangle \(ABC\) then \[\alpha =
+			\frac{\text{Area}(\bigtriangleup PBC)}{\text{Area}(\bigtriangleup ABC)}, \beta =
+			\frac{\text{Area}(\bigtriangleup PCA)}{\text{Area}(\bigtriangleup ABC)}, \gamma =
+			\frac{\text{Area}(\bigtriangleup PAB)}{\text{Area}(\bigtriangleup ABC)}\]
+		</p>
+		<p>
+			Then each area ratio will be within the range of [0,1] and the sum of the barycentric coordinates equals 1.
+		</p>
+		<p>
+			I used edge functions instead to efficiently compute these weights per sample. In
+			<code>rasterize_interpolated_color_triangle</code> we verify a subsample \((ssrx, ssry)\) aside the
+			triangle, and the 3 edge function cross products <code>efnc0</code>, <code>efnc1</code>, <code>efnc2</code>,
+			then the barycentric weights become \[\alpha = \frac{\text{efnc}1}{\text{Area}}, \beta =
+			\frac{\text{efnc}2}{\text{Area}}, \gamma = \frac{\text{efnc}3}{\text{Area}}\]
+			then the final color would be
+			\(\alpha \cdot c_0 + \beta \cdot c_1 + \gamma \cdot c_2\).
+		</p>
+		<h3>Visualization</h3>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+				<tr>
+					<td style="text-align: center;">
+						<div style="display: flex; justify-content: center; gap: 10px;">
+							<img src="images/image6.png" width="600px" />
+						</div>
+						<figcaption>Screenshot of svg/basic/test7.svg with default viewing parameters and sample rate 1
+						</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+
+
+		<h2>Task 5: "Pixel sampling" for texture mapping</h2>
+		<p>
+			Pixel sampling is when we apply texture onto a triangle in screen space, we need to figure out which color
+			value from the original texture best corresponds to each pixel on the screen since the textures usually have
+			discrete tele grids so we use pixel sampling techniques to map a continuous coordinate \((u,v)\) onto a
+			discrete texel location.
+		</p>
+		<p>
+			Nearest Neighbor sampling finds the integer tele location \( \lfloor u \cdot \text{width}+0.5 \rfloor,
+			\lfloor v
+			\cdot \text{height}+0.5 \rfloor, \) closest to the coordinate \( (u,v) \) then return that telex's color
+			directly,
+			which is fast as it involves only one texel lookup but usually produce some artifacts in the results.
+		</p>
+		<p>
+			Bilinear sampling inspect the 4 neighboring texels around \( (u,v) \) and perform a weighted average of
+			their colors based on how close \( (u,v) \) is to each of these texels, i.e., \( x = u \cdot \text{width} -
+			0.5, y = v \cdot \text{height} - 0.5 \), then the integer texel coordinates around the coordinates
+			calculated before \( (x,y) \) can be identified as the floor of the respective coordinate values, then
+			interpolate the colors using the weights based on how close \( (x,y) \) is to each corner that produces a
+			smooth gradient b/w texels.
+		</p>
+		<h3>Visualizations</h3>
+		<p>We can clearly see that the Bilinear Sampling performs better on texmap/test1.svg than Nearest Neighbor
+			Sampling, as at the same sampling rate of 1, the former has clearer connection on the grid lines than the
+			latter.</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+				<tr>
+					<td style="text-align: center;">
+						<div style="display: flex; justify-content: center; gap: 10px;">
+							<img src="images/image7.1.png" width="1000px" />
+						</div>
+						<figcaption>Screenshot of svg/texmap/test1.svg with Nearest Neighbor Sampling
+						</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+				<tr>
+					<td style="text-align: center;">
+						<div style="display: flex; justify-content: center; gap: 10px;">
+							<img src="images/image7.2.png" width="1000px" />
+						</div>
+						<figcaption>Screenshot of svg/texmap/test1.svg with Bilinear Sampling
+						</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<p>Comparisons of texmap/test2.svg under sampling rate of 1 and 16 and the 2 sampling methods</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+				<tr>
+					<td style="text-align: center;">
+						<div style="display: flex; justify-content: center; gap: 10px;">
+							<img src="images/image8.1.png" width="1000px" />
+						</div>
+						<figcaption>Screenshot of svg/texmap/test2.svg with Nearest Neigbbor Sampling at Sampling rate 1
+						</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+				<tr>
+					<td style="text-align: center;">
+						<div style="display: flex; justify-content: center; gap: 10px;">
+							<img src="images/image8.2.png" width="1000px" />
+						</div>
+						<figcaption>Screenshot of svg/texmap/test2.svg with Bilinear Sampling at Sampling rate 1
+						</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+				<tr>
+					<td style="text-align: center;">
+						<div style="display: flex; justify-content: center; gap: 10px;">
+							<img src="images/image8.3.png" width="1000px" />
+						</div>
+						<figcaption>Screenshot of svg/texmap/test2.svg with Nearest Neigbbor Sampling at Sampling rate
+							16
+						</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+				<tr>
+					<td style="text-align: center;">
+						<div style="display: flex; justify-content: center; gap: 10px;">
+							<img src="images/image8.4.png" width="1000px" />
+						</div>
+						<figcaption>Screenshot of svg/texmap/test2.svg with Bilinear Sampling at Sampling rate 16
+						</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+
+		<h3>Comparisons</h3>
+		<p>The 2 methods at 2 sampling rates yield different results.</p>
+		<p>Nearest at 1 sample rate has heavy pixelation
+			along edges and grid lines in areas where texture is magnified.</p>
+		<p>Bilinear at 1 sample rate has smoother and less pixelation
+			along edges and grid lines in areas where texture is magnified.</p>
+		<p>Nearest at 16 sample rate improves jaggies on triangle edges but texture still appears block like when zoomed
+			in due to each sub sample picks the nearest texel without blending.</p>
+		<p>Bilinear at 16 sample rate produces the smoothest result not only as it blends neighboring texels but also
+			average over multiple subsamples per pixel.</p>
+
+
+		<h2>Task 6: "Level Sampling" with mipmaps for texture mapping</h2>
+		<p>
+			Level sampling is used to choose the appropriate mipmap level for texture lookups based on how much a
+			texture
+			is extended or compressed on screen.
+		</p>
+		<p>
+			When a textured surface is viewed from afar a single screen pixel covers many texels of the base image.
+			Mipmapping first computes lower resolution mip levels of a texture instead of sampling the full-resolution
+			texture to avoid aliasing.
+		</p>
+		<p>
+			Here are what we implement for the levels of sampling:
+			<li><code>L_ZERO</code>: Always sample from base mipmap level which is fast but can cause aliasing.</li>
+			<li><code>L_NEAREST</code>: Compute a continuous mipmap level from texture coordinate derivatives rounded to
+				nearest
+				integer.</li>
+			<li><code>L_LINEAR</code>: Compute a continuous mipmap level linearly blended b/w 2 adjacent mipmap levels
+				producing
+				smoother
+				transitions as texture distance changes.</li>
+		</p>
+		<p>
+			First in the function <code>get_level</code>, I calculate the differences b/w barycentrically interpolated
+			UV coordinate at the sample point and its neighbors (<code>sp.p_dx_uv</code> and <code>sp.p_dy_uv</code>),
+			then scale them by base texture dimensions (<code>mipmap[0]</code>). These differential vectors' lengths are
+			then
+			computed and filtered out the maximum values. Eventually, the target mipmap level is obtained by taking
+			base-2 logarithm of maximum value, clamping the result to nonnegative values.
+		</p>
+		<p>
+			Then I fill in the function <code>sample</code> which decides which mipmap level to use based on the current
+			level sampling mode. <code>L_ZERO</code> ignore the computed level and sample directly from level 0,
+			<code>L_NEAREST</code> use floor
+			calculation to round to the nearest nearest integer mipmap level, <code>L_LINEAR</code> compute the 2
+			nearest integer
+			levels and blend sampled colors proportionally to fractional part of the continuous level.
+		</p>
+		<p>
+			Tradefoffs:
+			<li>Speed: If we Only use Pixel Sampling without Level Sampling is fast as it accesses a single mip level,
+				while using the extra Level Sampling for the appropriate mip level slows down the process relatively,
+				but is
+				improves caching as lower mip levels are smaller and reduces over-sampling cost.</li>
+			<li>Memory: Storing mipmaps increase texture memory by approximately 33% over base texture but is not
+				unreasonable given that it improves performance.</li>
+			<li>Quality of Antialias: Differs by the level used. At L_ZERO level 0 is always sampled which gives the
+				sharpest details when zoomed in but can cause substantial aliasing. At L_NEAREST which rounds to the
+				nearest
+				mip level the antialiasing is improved slightly. At L_LINEAR which blends b/w adjacent mip levels
+				through
+				trilinear filtering outputs the smoothest transitions and best antialiasing with a reduction in
+				efficiency.</li>
+		</p>
+		<h3>Visualizations</h3>
+		<p>
+			Using a png file from the internet, beow I show the four versions of the image, using the combinations of
+			<code>L_ZERO</code> and <code>P_NEAREST</code>, <code>L_ZERO</code> and <code>P_LINEAR</code>,
+			<code>L_NEAREST</code> and <code>P_NEAREST</code>, as well as <code>L_NEAREST</code> and
+			<code>P_LINEAR</code>.
+		</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+				<tr>
+					<td style="text-align: center;">
+						<div style="display: flex; justify-content: center; gap: 10px;">
+							<img src="images/image9.1.png" width="1000px" />
+						</div>
+						<figcaption>Screenshot of svg/texmap/mytest.svg with L_ZERO level and Nearest Neighbor Sampling
+						</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+				<tr>
+					<td style="text-align: center;">
+						<div style="display: flex; justify-content: center; gap: 10px;">
+							<img src="images/image9.2.png" width="1000px" />
+						</div>
+						<figcaption>Screenshot of svg/texmap/mytest.svg with L_ZERO level and Bilinear Sampling
+						</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+				<tr>
+					<td style="text-align: center;">
+						<div style="display: flex; justify-content: center; gap: 10px;">
+							<img src="images/image9.3.png" width="1000px" />
+						</div>
+						<figcaption>Screenshot of svg/texmap/mytest.svg with L_NEAREST level and Nearest Neighbor
+							Sampling
+						</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+				<tr>
+					<td style="text-align: center;">
+						<div style="display: flex; justify-content: center; gap: 10px;">
+							<img src="images/image9.4.png" width="1000px" />
+						</div>
+						<figcaption>Screenshot of svg/texmap/mytest.svg with L_NEAREST level and Bilinear Sampling
+						</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+
+
+		<h2>(Optional) Task 7: Extra Credit - Draw Something Creative!</h2>
+		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+		dolore
+		magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+		commodo
+		consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+		pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim
+		id est
+		laborum.
+
+		<h2>Additional Notes (please remove)</h2>
+		<ul>
+			<li>You can also add code if you'd like as so: <code>code code code</code></li>
+			<li>If you'd like to add math equations,
+				<ul>
+					<li>You can write inline equations like so: \( a^2 + b^2 = c^2 \)</li>
+					<li>You can write display equations like so: \[ a^2 + b^2 = c^2 \]</li>
+				</ul>
+			</li>
+		</ul>
+	</div>
+</body>
+
+</html>
